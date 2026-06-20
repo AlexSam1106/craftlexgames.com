@@ -2,7 +2,7 @@
   "name": "Moodle UNICAH",
   "short_name": "Moodle",
   "description": "Acceso directo Alexander",
-  "start_url": "./index.html",
+  "start_url": "./index.html?pass=1106",
   "scope": "./",
   "display": "standalone",
   "background_color": "#FFFFFF",
