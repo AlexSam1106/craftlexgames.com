@@ -1,7 +1,7 @@
-const CACHE_NAME = 'unicah-pwa-v1';
+const CACHE_NAME = 'unicah-pwa-v2';
 const urlsToCache = [
   './index.html',
-  './manifest.json',
+  './index.html?pass=1106',
   './moodle-icon.png'
 ];
 
