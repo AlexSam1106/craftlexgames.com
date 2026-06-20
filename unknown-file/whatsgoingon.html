@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Qué está pasando?</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Consolas:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', monospace;
+            background: #000000;
+            color: #00FF00;
+            overflow: hidden; /* Mantiene el fondo sin scroll global */
+            cursor: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative; /* Needed for binary background */
+        }
+        
+        .custom-cursor {
+            position: fixed;
+            width: 10px;
+            height: 16px;
+            background: #00FFFF;
+            pointer-events: none;
+            z-index: 9999;
+            animation: cursor-blink 1s infinite;
+        }
+        
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.03) 2px,
+                rgba(0, 255, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 2; /* Above binary background, below message box */
+        }
+
+        /* Binary background */
+        .binary-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .binary-column {
+            position: absolute;
+            width: 20px; /* Width of each column */
+            text-align: center;
+            white-space: pre;
+            font-size: 16px; /* Adjust as needed */
+            line-height: 1.2;
+            color: rgba(0, 255, 0, 0.1); /* Faded binary code */
+            animation: binary-flow linear infinite;
+        }
+
+        @keyframes binary-flow {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        
+        .message-container {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00FFFF;
+            box-shadow: 0 0 20px #00FFFF, inset 0 0 10px #00FFFF;
+            padding: 30px;
+            max-width: 700px;
+            max-height: 80vh; /* Altura máxima del contenedor, forzará el scroll interno */
+            position: relative;
+            z-index: 10; /* Above scanlines and binary background */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            overflow-y: auto; /* Permite el scroll vertical dentro del contenedor */
+            cursor: pointer; /* Indicate it's clickable */
+        }
+
+        .fake-url-bar {
+            width: calc(100% - 20px); /* Adjust for padding */
+            background: #111111;
+            border: 1px solid #00FFFF;
+            color: #00FFFF;
+            padding: 8px 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-radius: 3px;
+        }
+
+        .fake-url-bar span {
+            color: #00FF00; /* For the lock icon */
+        }
+
+        .message-line {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #00FF00;
+            white-space: pre-wrap; /* Preserve line breaks */
+            border-right: .15em solid transparent; /* Start with transparent cursor */
+        }
+
+        /* Blinking cursor animation */
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #00FFFF; }
+        }
+
+        .message-line.active {
+            border-right-color: #00FFFF; /* Make cursor visible when typing */
+            animation: blink-caret .75s step-end infinite; /* Apply blinking animation */
+        }
+
+        .message-line.finished {
+            border-right: none; /* Hide cursor when typing is done */
+        }
+
+        .prompt-text {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #00FFFF;
+            text-align: center;
+            width: 100%;
+            opacity: 0; /* Hidden initially */
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .prompt-text.visible {
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .message-container {
+                margin: 20px;
+                padding: 20px;
+                max-width: 90%;
+            }
+            .message-line {
+                font-size: 0.9em;
+            }
+            .fake-url-bar {
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor"></div>
+    <div class="scanlines"></div>
+    
+    <!-- Binary Background -->
+    <div class="binary-background" id="binaryBackground"></div>
+
+    <div class="message-container" id="messageContainer">
+        <!-- Fake URL Bar -->
+        <div class="fake-url-bar">
+            <span>🔒</span>
+            <span id="displayUrl">https://3g2upl4pq6kufc4m.onion/play</span>
+        </div>
+        <!-- Messages will be injected here -->
+        <div class="prompt-text" id="clickPrompt">Haz clic para continuar...</div>
+    </div>
+
+    <audio id="audioContext" style="display: none;">
+        <source src="" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // Audio context for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Sound effects
+        function playBeep(frequency = 1200, duration = 50) { // Default for keyboard click
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+        
+        // Custom cursor
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.custom-cursor');
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Binary background generation
+        function generateBinaryBackground() {
+            const binaryBackground = document.getElementById('binaryBackground');
+            const chars = '01';
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const columnWidth = 20; // Matches CSS
+            const numColumns = Math.ceil(screenWidth / columnWidth);
+
+            for (let i = 0; i < numColumns; i++) {
+                const column = document.createElement('div');
+                column.className = 'binary-column';
+                column.style.left = `${i * columnWidth}px`;
+                column.style.animationDuration = `${Math.random() * 10 + 5}s`; // Random animation speed
+                column.style.animationDelay = `-${Math.random() * 10}s`; // Staggered start
+
+                let columnContent = '';
+                const numRows = Math.ceil(screenHeight / 16); // Approx font size
+                for (let j = 0; j < numRows * 2; j++) { // More rows to ensure continuous flow
+                    columnContent += chars.charAt(Math.floor(Math.random() * chars.length)) + '\n';
+                }
+                column.textContent = columnContent;
+                binaryBackground.appendChild(column);
+            }
+        }
+
+        // Messages to display
+        const messages = [
+            "Hola. Si estás viendo esto, has logrado algo importante. Has ingresado a una parte de la red que pocos alcanzan.",
+            "La página anterior y esta operan a través de una red llamada Tor. Piensa en Tor como una serie de túneles cifrados que ocultan tu ubicación real. Cada vez que te conectas, tu señal rebota a través de varios 'nodos' en todo el mundo.",
+            "Un 'nodo' es simplemente un servidor o computadora que participa en esta red. Tu conexión pasa por múltiples nodos, haciendo que sea muy difícil rastrear de dónde vienes. Es como enviar una carta a través de muchas manos anónimas antes de que llegue a su destino.",
+            "Tu ubicación real ha sido cifrada y enmascarada a través de este proceso. Para la red, eres solo otra conexión anónima. Esto te da un nivel de privacidad y seguridad que no existe en la web normal.",
+            "Ahora mismo, estás en un nodo de conexión especial. La URL ha cambiado a 'https://3g2upl4pq6kufc4m.onion/play' para indicar que has pasado a una fase diferente de esta interacción.",
+            "Por ahora, permanecerás varado en este nivel de la web. Estamos preparando todo para tu siguiente paso. Mantente atento a futuras comunicaciones. -- El que observa"
+        ];
+
+        let currentMessageIndex = 0;
+        let isTyping = false;
+        const messageContainer = document.getElementById('messageContainer');
+        const clickPrompt = document.getElementById('clickPrompt');
+
+        function typeMessage(message, element, callback) {
+            isTyping = true;
+            element.classList.add('active'); // Activates cursor blinking
+            element.textContent = ''; // Clear content before typing
+            const typingSpeed = 50; // milliseconds per character
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < message.length) {
+                    element.textContent += message.charAt(i);
+                    playBeep(1000 + Math.random() * 200, 30); // Subtle typing sound
+                    // Scroll down with each character to ensure visibility
+                    messageContainer.scrollTop = messageContainer.scrollHeight; 
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    element.classList.remove('active'); // Deactivates cursor blinking
+                    element.classList.add('finished'); // Hides cursor
+                    isTyping = false;
+                    if (callback) callback();
+                }
+            }, typingSpeed);
+        }
+
+        function displayNextMessage() {
+            if (isTyping) return; // Prevent multiple clicks during typing
+
+            if (currentMessageIndex < messages.length) {
+                // Hide prompt if visible
+                clickPrompt.classList.remove('visible');
+
+                const messageLine = document.createElement('p');
+                messageLine.className = 'message-line';
+                messageContainer.insertBefore(messageLine, clickPrompt); // Insert before the prompt
+
+                typeMessage(messages[currentMessageIndex], messageLine, () => {
+                    // Show prompt after typing is finished, unless it's the last message
+                    if (currentMessageIndex < messages.length - 1) {
+                        clickPrompt.classList.add('visible');
+                    } else {
+                        // For the last message, maybe show a final "END" or just leave it
+                        clickPrompt.textContent = "Mensaje completo. Espera nuevas instrucciones.";
+                        clickPrompt.classList.add('visible');
+                    }
+                });
+                currentMessageIndex++;
+                // Ensure final scroll after message is fully typed
+                messageContainer.scrollTop = messageContainer.scrollHeight; 
+            } else {
+                // All messages displayed, maybe do something else or just leave the prompt
+                // console.log("All messages displayed.");
+            }
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            generateBinaryBackground();
+            // Update URL in browser history to include the fictitious domain as part of the path
+            history.pushState({}, '', '/3g2upl4pq6kufc4m.onion/play'); 
+            
+            // Initial prompt to start messages
+            clickPrompt.classList.add('visible');
+        };
+
+        // Re-generate binary background on resize to maintain coverage
+        window.onresize = () => {
+            const binaryBackground = document.getElementById('binaryBackground');
+            while (binaryBackground.firstChild) {
+                binaryBackground.removeChild(binaryBackground.firstChild);
+            }
+            generateBinaryBackground();
+        };
+
+        // Click listener to advance messages
+        messageContainer.addEventListener('click', displayNextMessage);
+    </script>
+</body>
+</html>

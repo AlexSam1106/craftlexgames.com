@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgendaPro - Alexander</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        
+        /* Detalles de acordeón para configuración */
+        details > summary { list-style: none; cursor: pointer; }
+        details > summary::-webkit-details-marker { display: none; }
+    </style>
+</head>
+<body class="bg-slate-100 flex flex-col md:flex-row font-sans text-slate-900 selection:bg-indigo-200 h-screen overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <nav class="bg-white border-r border-slate-200 w-full md:w-72 md:min-h-screen flex flex-col z-20 sticky top-0 md:relative shadow-sm md:shadow-none">
+        <div class="p-6 pb-2">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="bg-gradient-to-br from-indigo-600 to-blue-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/30">
+                    <i data-lucide="graduation-cap" class="text-white w-7 h-7"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-2xl tracking-tight text-slate-800 leading-none">Agenda<span class="text-indigo-600">Pro</span></h1>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1" id="nav-year">Alexander</p>
+                </div>
+            </div>
+
+            <div class="flex md:flex-col space-x-2 md:space-x-0 md:space-y-3 overflow-x-auto pb-4 md:pb-0 hide-scrollbar" id="nav-menu">
+                <!-- Navigation items renderizados por JS -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        <!-- Top Global Filter Bar -->
+        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10 shadow-sm">
+            <div class="flex items-center text-slate-500">
+                <i data-lucide="filter" class="w-5 h-5 mr-2 hidden sm:block"></i>
+                <span class="font-bold text-sm hidden sm:block">Visualización:</span>
+            </div>
+            <div class="flex items-center space-x-4 w-full sm:w-auto overflow-x-auto hide-scrollbar" id="global-filters">
+                <!-- Filtros renderizados por JS -->
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 p-6 md:p-10 overflow-y-auto w-full max-w-7xl mx-auto custom-scrollbar" id="main-content">
+            <!-- Vistas renderizadas por JS -->
+        </div>
+    </main>
+
+    <!-- Modals Containers -->
+    <div id="modal-container" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center p-4 z-50 hidden"></div>
+
+    <script>
+        // --- INICIALIZACIÓN DE DATOS Y CONFIGURACIÓN POR DEFECTO ---
+        const defaultSettings = {
+            partialDurationDays: 30, // Default 30 días
+            periods: {}
+        };
+        for (let i = 1; i <= 12; i++) {
+            defaultSettings.periods[i] = { start: '', end: '' };
+        }
+
+        // Migración a V4 para soportar los 12 periodos y suma de parciales
+        const State = {
+            activeTab: 'dashboard',
+            globalPeriod: parseInt(localStorage.getItem('alex_v4_global_per') || '1'),
+            globalPartial: parseInt(localStorage.getItem('alex_v4_global_par') || '1'),
+            subjects: JSON.parse(localStorage.getItem('alex_v4_subjects') || '[]'),
+            tasks: JSON.parse(localStorage.getItem('alex_v4_tasks') || '[]'),
+            grades: JSON.parse(localStorage.getItem('alex_v4_grades') || '[]'),
+            settings: JSON.parse(localStorage.getItem('alex_v4_settings') || JSON.stringify(defaultSettings)),
+            selectedSubjectGrades: null,
+            expandedTaskId: null,
+            agendaView: 'list',
+            agendaDateFilter: 'all',
+            calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            newTaskSubtasks: []
+        };
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        function getTomorrowStr() {
+            const d = new Date(); d.setDate(d.getDate() + 1);
+            return d.toISOString().split('T')[0];
+        }
+        const tomorrowStr = getTomorrowStr();
+
+        // --- FUNCIONES DE GUARDADO ---
+        function saveState() {
+            localStorage.setItem('alex_v4_global_per', State.globalPeriod);
+            localStorage.setItem('alex_v4_global_par', State.globalPartial);
+            localStorage.setItem('alex_v4_subjects', JSON.stringify(State.subjects));
+            localStorage.setItem('alex_v4_tasks', JSON.stringify(State.tasks));
+            localStorage.setItem('alex_v4_grades', JSON.stringify(State.grades));
+            localStorage.setItem('alex_v4_settings', JSON.stringify(State.settings));
+            renderApp();
+        }
+
+        // --- AUTO-DETECCIÓN DE FECHAS ---
+        function autoDetectPeriod() {
+            let foundPer = null;
+            let foundPar = null;
+            const todayDate = new Date(todayStr);
+            const durationDays = parseInt(State.settings.partialDurationDays) || 30;
+            
+            for (let t = 1; t <= 12; t++) {
+                const per = State.settings.periods[t];
+                if (per.start && per.end && todayStr >= per.start && todayStr <= per.end) {
+                    foundPer = t;
+                    const startDate = new Date(per.start);
+                    const diffTime = Math.abs(todayDate - startDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays <= durationDays) {
+                        foundPar = 1;
+                    } else if (diffDays <= durationDays * 2) {
+                        foundPar = 2;
+                    } else {
+                        foundPar = 3;
+                    }
+                    break;
+                }
+            }
+            
+            if (foundPer) {
+                State.globalPeriod = foundPer;
+                State.globalPartial = foundPar || 1;
+                saveState();
+            }
+        }
+
+        // --- LÓGICA MATEMÁTICA Y CALIFICACIONES ---
+        // SUMA las notas para el parcial (e.g. 25 + 68 = 93)
+        function getPartialSum(subjectId, partial) {
+            const partialGrades = State.grades.filter(g => g.subjectId === subjectId && g.partial === parseInt(partial));
+            if (partialGrades.length === 0) return 0;
+            
+            let totalScore = 0;
+            partialGrades.forEach(g => {
+                totalScore += Number(g.score);
+            });
+            // Limitamos visualmente a 100 si excede, o puedes quitar el Math.min si dan puntos extra
+            return Math.min(100, Math.round(totalScore)); 
+        }
+
+        // Calcula el promedio final de la materia (PROMEDIO de los 3 parciales sumados)
+        function getSubjectFinalAverage(subjectId) {
+            let validCount = 0;
+            let sum = 0;
+            
+            [1, 2, 3].forEach(p => {
+                const hasGradesForPartial = State.grades.some(g => g.subjectId === subjectId && g.partial === p);
+                if (hasGradesForPartial) {
+                    sum += getPartialSum(subjectId, p);
+                    validCount++;
+                }
+            });
+
+            if (validCount === 0) return 0;
+            return Math.round(sum / validCount);
+        }
+
+        function getGlobalMetrics() {
+            // Filtra solo materias del periodo actual
+            const currentPerSubjects = State.subjects.filter(s => parseInt(s.period) === State.globalPeriod);
+            if (currentPerSubjects.length === 0) return { currentPerAvg: 0, currentPartialAvg: 0 };
+            
+            let totalPer = 0, countPer = 0;
+            let totalPartial = 0, countPartial = 0;
+
+            currentPerSubjects.forEach(sub => {
+                const subAvg = getSubjectFinalAverage(sub.id);
+                if (subAvg > 0) { totalPer += subAvg; countPer++; }
+
+                const hasGradesPar = State.grades.some(g => g.subjectId === sub.id && g.partial === State.globalPartial);
+                if (hasGradesPar) { 
+                    totalPartial += getPartialSum(sub.id, State.globalPartial); 
+                    countPartial++; 
+                }
+            });
+
+            return {
+                currentPerAvg: countPer ? Math.round(totalPer / countPer) : 0,
+                currentPartialAvg: countPartial ? Math.round(totalPartial / countPartial) : 0
+            };
+        }
+
+        function getSubjectInfo(id) {
+            return State.subjects.find(s => s.id === id) || { name: 'Desconocido', color: 'bg-gray-500', period: 1 };
+        }
+
+        // --- ACCIONES DE ESTADO ---
+        function setTab(tab) {
+            State.activeTab = tab;
+            State.selectedSubjectGrades = null;
+            renderApp();
+        }
+
+        function setGlobalPeriod(p) { State.globalPeriod = parseInt(p); State.selectedSubjectGrades = null; saveState(); }
+        function setGlobalPartial(p) { State.globalPartial = parseInt(p); saveState(); }
+        function setAgendaView(v) { State.agendaView = v; renderApp(); }
+        function setAgendaFilter(f) { State.agendaDateFilter = f; renderApp(); }
+        function setCalendarMonth(offset) { State.calendarDate.setMonth(State.calendarDate.getMonth() + offset); renderApp(); }
+        function toggleExpandTask(id) { State.expandedTaskId = State.expandedTaskId === id ? null : id; renderApp(); }
+        function setSelectedSubject(id) { State.selectedSubjectGrades = id; renderApp(); }
+
+        function toggleTask(taskId) {
+            State.tasks = State.tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
+            saveState();
+        }
+
+        function toggleSubtask(taskId, subtaskId) {
+            State.tasks = State.tasks.map(t => {
+                if (t.id === taskId) {
+                    const updatedSubtasks = t.subtasks.map(st => st.id === subtaskId ? { ...st, completed: !st.completed } : st);
+                    const allDone = updatedSubtasks.length > 0 && updatedSubtasks.every(st => st.completed);
+                    return { ...t, subtasks: updatedSubtasks, completed: allDone };
+                }
+                return t;
+            });
+            saveState();
+        }
+
+        function deleteTask(taskId) { State.tasks = State.tasks.filter(t => t.id !== taskId); saveState(); }
+        
+        function deleteSubject(subjectId) {
+            if(window.confirm('¿Seguro que deseas eliminar esta materia? Se borrarán sus tareas y notas de este periodo.')) {
+                State.subjects = State.subjects.filter(s => s.id !== subjectId);
+                State.tasks = State.tasks.filter(t => t.subjectId !== subjectId);
+                State.grades = State.grades.filter(g => g.subjectId !== subjectId);
+                if (State.selectedSubjectGrades === subjectId) State.selectedSubjectGrades = null;
+                saveState();
+            }
+        }
+
+        function deleteGrade(gradeId) {
+            State.grades = State.grades.filter(g => g.id !== gradeId);
+            saveState();
+        }
+
+        // --- SISTEMA DE MODALES UNIFICADO ---
+        function openModal(contentHTML) {
+            const container = document.getElementById('modal-container');
+            container.innerHTML = contentHTML;
+            container.classList.remove('hidden');
+            lucide.createIcons();
+        }
+        function closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
+
+        function openSubjectModal(editId = null) {
+            const subj = editId ? State.subjects.find(s => s.id === editId) : null;
+            let periodOptions = '';
+            for(let i=1; i<=12; i++) {
+                const isSelected = subj ? (subj.period === i) : (State.globalPeriod === i);
+                periodOptions += `<option value="${i}" ${isSelected ? 'selected' : ''}>Período ${i}</option>`;
+            }
+
+            const html = `
+            <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 animate-fade-in">
+                <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 class="font-extrabold text-xl text-slate-800">${subj ? 'Editar Materia' : 'Nueva Materia'}</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <form onsubmit="handleSaveSubject(event, '${editId || ''}')" class="p-8 space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Materia *</label>
+                        <input required name="name" type="text" value="${subj ? subj.name : ''}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-indigo-500 outline-none transition-colors font-medium text-slate-800" placeholder="Ej. Matemáticas Avanzadas" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">¿En qué periodo la llevas? *</label>
+                        <select required name="period" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-white font-medium text-slate-800">
+                            ${periodOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Profesor (Opcional)</label>
+                        <input name="teacher" type="text" value="${subj && subj.teacher ? subj.teacher : ''}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-indigo-500 outline-none transition-colors font-medium text-slate-800" placeholder="Ej. Lic. Pérez" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-3">Color de Identificación</label>
+                        <div class="flex flex-wrap gap-3">
+                            ${['bg-blue-500', 'bg-red-500', 'bg-emerald-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-teal-500', 'bg-indigo-500'].map(color => {
+                                const isChecked = subj ? (subj.color === color) : (color === 'bg-blue-500');
+                                return `
+                                <label class="cursor-pointer relative">
+                                    <input type="radio" name="color" value="${color}" class="peer sr-only" ${isChecked ? 'checked' : ''} />
+                                    <div class="w-10 h-10 rounded-xl ${color} ring-4 ring-transparent peer-checked:ring-indigo-200 peer-checked:scale-110 shadow-sm transition-all duration-200"></div>
+                                </label>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    <div class="pt-6 flex justify-end space-x-4">
+                        <button type="button" onclick="closeModal()" class="px-5 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-bold transition-colors">Cancelar</button>
+                        <button type="submit" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md shadow-indigo-500/30 transition-all">${subj ? 'Guardar Cambios' : 'Crear Materia'}</button>
+                    </div>
+                </form>
+            </div>`;
+            openModal(html);
+        }
+
+        function openTaskModal(editId = null) {
+            const task = editId ? State.tasks.find(t => t.id === editId) : null;
+            State.newTaskSubtasks = task && task.subtasks ? JSON.parse(JSON.stringify(task.subtasks)) : [];
+            
+            const targetPeriod = task ? getSubjectInfo(task.subjectId).period : State.globalPeriod;
+            const currentSubjects = State.subjects.filter(s => parseInt(s.period) === targetPeriod);
+            
+            const subjOptions = State.subjects.length === 0 
+                ? `<option value="">Sin materias configuradas</option>` 
+                : State.subjects.map(s => `<option value="${s.id}" ${task && task.subjectId === s.id ? 'selected' : (!task && parseInt(s.period) === State.globalPeriod ? 'selected' : '')}>${s.name} (Per. ${s.period})</option>`).join('');
+            
+            const html = `
+            <div class="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 animate-fade-in">
+                <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+                    <h3 class="font-extrabold text-xl text-slate-800">${task ? 'Editar Asignación' : 'Nueva Asignación'}</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="overflow-y-auto p-8 custom-scrollbar">
+                    <form id="taskForm" onsubmit="handleSaveTask(event, '${editId || ''}')" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Título *</label>
+                            <input required name="title" type="text" value="${task ? task.title : ''}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-blue-500 outline-none transition-colors font-medium text-slate-800" placeholder="Ej. Ejercicios pág. 45" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Descripción / Instrucciones (Opcional)</label>
+                            <textarea name="description" rows="3" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-blue-500 outline-none transition-colors font-medium text-slate-800 resize-none" placeholder="Detalles de lo que hay que hacer...">${task && task.description ? task.description : ''}</textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Materia *</label>
+                                <select required name="subjectId" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 bg-white font-medium text-slate-800">
+                                    ${subjOptions}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Tipo</label>
+                                <select name="type" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-blue-500 bg-white font-medium text-slate-800">
+                                    <option value="tarea" ${task && task.type === 'tarea' ? 'selected' : ''}>Tarea</option>
+                                    <option value="proyecto" ${task && task.type === 'proyecto' ? 'selected' : ''}>Proyecto</option>
+                                    <option value="exam" ${task && task.type === 'exam' ? 'selected' : ''}>Examen</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Fecha de Entrega / Examen *</label>
+                            <input required name="dueDate" type="date" value="${task ? task.dueDate : todayStr}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-blue-500 outline-none transition-colors font-medium text-slate-800" />
+                        </div>
+                        <div class="pt-4 border-t border-slate-100">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Subtareas (Opcional)</label>
+                            <div class="flex space-x-2 mb-3">
+                                <input type="text" id="subtaskInput" onkeydown="handleSubtaskKey(event)" class="flex-1 border-2 border-slate-200 rounded-xl px-4 py-2 focus:ring-0 focus:border-blue-500 outline-none transition-colors text-sm font-medium" placeholder="Ej. Leer capítulo 1..." />
+                                <button type="button" onclick="addSubtask()" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-slate-700 transition-colors">Añadir</button>
+                            </div>
+                            <div id="subtasksList" class="space-y-2"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="px-8 py-5 border-t border-slate-100 bg-slate-50 flex justify-end space-x-4 shrink-0">
+                    <button type="button" onclick="closeModal()" class="px-5 py-3 text-slate-500 hover:bg-slate-200 rounded-xl font-bold transition-colors">Cancelar</button>
+                    <button type="submit" form="taskForm" ${State.subjects.length === 0 ? 'disabled' : ''} class="px-5 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold shadow-md shadow-blue-500/30 transition-all">${task ? 'Guardar Cambios' : 'Guardar Asignación'}</button>
+                </div>
+            </div>`;
+            openModal(html);
+            renderSubtasks();
+        }
+
+        function openGradeModal(subjectId, partial, editId = null) {
+            const grade = editId ? State.grades.find(g => g.id === editId) : null;
+
+            const html = `
+            <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-slate-100 animate-fade-in">
+                <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <div>
+                        <h3 class="font-extrabold text-xl text-slate-800">${grade ? 'Editar Nota' : 'Añadir Nota a Sumatoria'}</h3>
+                        <p class="text-sm text-slate-500 font-medium">${getSubjectInfo(subjectId).name} • Parcial ${partial}</p>
+                    </div>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <form onsubmit="handleSaveGrade(event, '${subjectId}', ${partial}, '${editId || ''}')" class="p-8 space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Descripción (Ej. Tarea, Examen) *</label>
+                        <input required name="title" type="text" value="${grade ? grade.title : ''}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-emerald-500 outline-none transition-colors font-medium text-slate-800" placeholder="Ej. Proyecto Final" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Puntos Obtenidos *</label>
+                            <input required name="score" type="number" step="0.1" min="0" value="${grade ? grade.score : ''}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-emerald-500 outline-none transition-colors font-medium text-slate-800" placeholder="Ej. 25" title="Los puntos que ganaste (esto se sumará al parcial)" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Valor de Tarea *</label>
+                            <input required name="maxScore" type="number" step="0.1" min="0.1" value="${grade ? grade.maxScore : ''}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-emerald-500 outline-none transition-colors font-medium text-slate-800" placeholder="Ej. 25" title="Cuánto valía originalmente la asignación" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Fecha de la nota</label>
+                        <input name="date" type="date" value="${grade ? grade.date : todayStr}" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3 focus:ring-0 focus:border-emerald-500 outline-none transition-colors font-medium text-slate-800" />
+                    </div>
+                    <div class="pt-6 flex justify-end space-x-4">
+                        <button type="button" onclick="closeModal()" class="px-5 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-bold transition-colors">Cancelar</button>
+                        <button type="submit" class="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md shadow-emerald-500/30 transition-all">${grade ? 'Guardar Cambios' : 'Guardar Nota'}</button>
+                    </div>
+                </form>
+            </div>`;
+            openModal(html);
+        }
+
+        // --- MANEJADORES DE FORMULARIOS ---
+        function handleSaveSubject(e, editId) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                name: formData.get('name'),
+                period: parseInt(formData.get('period')),
+                teacher: formData.get('teacher'),
+                color: formData.get('color') || 'bg-blue-500',
+            };
+
+            if (editId) {
+                State.subjects = State.subjects.map(s => s.id === editId ? { ...s, ...data } : s);
+            } else {
+                State.subjects.push({ id: Date.now().toString(), ...data });
+            }
+            saveState();
+            closeModal();
+        }
+
+        function handleSaveTask(e, editId) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                subjectId: formData.get('subjectId'),
+                type: formData.get('type'),
+                dueDate: formData.get('dueDate'),
+                subtasks: State.newTaskSubtasks
+            };
+
+            if (editId) {
+                State.tasks = State.tasks.map(t => t.id === editId ? { ...t, ...data } : t);
+            } else {
+                State.tasks.push({ id: Date.now().toString(), completed: false, ...data });
+            }
+            saveState();
+            closeModal();
+        }
+
+        function handleSaveGrade(e, subjectId, partial, editId) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                subjectId: subjectId,
+                partial: parseInt(partial),
+                title: formData.get('title'),
+                score: parseFloat(formData.get('score')),
+                maxScore: parseFloat(formData.get('maxScore')),
+                date: formData.get('date')
+            };
+
+            if (editId) {
+                State.grades = State.grades.map(g => g.id === editId ? { ...g, ...data } : g);
+            } else {
+                State.grades.push({ id: Date.now().toString(), ...data });
+            }
+            saveState();
+            closeModal();
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            const newSettings = {
+                partialDurationDays: parseInt(formData.get('partialDurationDays')) || 30,
+                periods: {}
+            };
+
+            for (let t = 1; t <= 12; t++) {
+                newSettings.periods[t] = {
+                    start: formData.get(`per${t}_start`),
+                    end: formData.get(`per${t}_end`)
+                };
+            }
+            
+            State.settings = newSettings;
+            saveState();
+            autoDetectPeriod(); // Re-chequear periodo activo tras cambiar fechas
+            alert("¡Configuración guardada exitosamente!");
+        }
+
+        // Subtareas
+        function handleSubtaskKey(e) { if (e.key === 'Enter') { e.preventDefault(); addSubtask(); } }
+        function addSubtask() {
+            const input = document.getElementById('subtaskInput');
+            if (input.value.trim()) {
+                State.newTaskSubtasks.push({
+                    id: 'st_' + Date.now() + Math.floor(Math.random() * 1000),
+                    title: input.value.trim(),
+                    completed: false
+                });
+                input.value = '';
+                renderSubtasks();
+            }
+        }
+        function removeSubtask(index) { State.newTaskSubtasks.splice(index, 1); renderSubtasks(); }
+        function renderSubtasks() {
+            const container = document.getElementById('subtasksList');
+            if(!container) return;
+            if (State.newTaskSubtasks.length === 0) {
+                container.innerHTML = ''; container.classList.remove('bg-slate-50', 'p-4', 'rounded-xl', 'border', 'border-slate-100');
+                return;
+            }
+            container.classList.add('bg-slate-50', 'p-4', 'rounded-xl', 'border', 'border-slate-100');
+            container.innerHTML = State.newTaskSubtasks.map((st, i) => `
+                <div class="flex justify-between items-center bg-white p-2 px-3 rounded-lg border border-slate-200 shadow-sm">
+                    <span class="text-sm font-medium text-slate-700">${st.title}</span>
+                    <button type="button" onclick="removeSubtask(${i})" class="text-red-400 hover:text-red-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- RENDERIZADO PRINCIPAL ---
+        function renderApp() {
+            renderNav();
+            renderGlobalFilters();
+            
+            const mainContent = document.getElementById('main-content');
+            if (State.activeTab === 'dashboard') mainContent.innerHTML = getDashboardHTML();
+            else if (State.activeTab === 'agenda') mainContent.innerHTML = getAgendaHTML();
+            else if (State.activeTab === 'grades') {
+                if (!State.selectedSubjectGrades) mainContent.innerHTML = getGradesListHTML();
+                else mainContent.innerHTML = getSubjectGradesDetailHTML(State.selectedSubjectGrades);
+            }
+            else if (State.activeTab === 'settings') mainContent.innerHTML = getSettingsHTML();
+            
+            lucide.createIcons();
+        }
+
+        function renderNav() {
+            const navItems = [
+                { id: 'dashboard', icon: 'layout-dashboard', label: 'Dashboard' },
+                { id: 'agenda', icon: 'calendar-days', label: 'Agenda & Tareas' },
+                { id: 'grades', icon: 'target', label: 'Notas (12 Períodos)' },
+                { id: 'settings', icon: 'settings', label: 'Configuración' }
+            ];
+            const html = navItems.map(item => `
+                <button onclick="setTab('${item.id}')" class="flex w-full items-center space-x-3 px-4 py-3.5 rounded-2xl transition-all duration-200 whitespace-nowrap group ${State.activeTab === item.id ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 border border-transparent'}">
+                    <i data-lucide="${item.icon}" class="w-6 h-6 ${State.activeTab === item.id ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}"></i>
+                    <span class="font-bold">${item.label}</span>
+                    ${State.activeTab === item.id ? `<i data-lucide="chevron-right" class="w-4 h-4 ml-auto hidden md:block opacity-50"></i>` : ''}
+                </button>
+            `).join('');
+            document.getElementById('nav-menu').innerHTML = html;
+        }
+
+        function renderGlobalFilters() {
+            // Ocultar filtros en configuración
+            if (State.activeTab === 'settings') {
+                document.getElementById('global-filters').innerHTML = '';
+                return;
+            }
+
+            let periodOptions = '';
+            for(let i=1; i<=12; i++) {
+                periodOptions += `<option value="${i}" ${State.globalPeriod === i ? 'selected' : ''}>Período ${i}</option>`;
+            }
+
+            const html = `
+            <div class="flex flex-nowrap items-center space-x-3 w-full">
+                <div class="flex items-center bg-slate-100 rounded-xl p-1.5 border border-slate-200 shadow-inner flex-shrink-0">
+                    <select onchange="setGlobalPeriod(this.value)" class="bg-white text-indigo-700 font-bold text-sm px-3 py-1.5 rounded-lg shadow-sm border-none outline-none cursor-pointer">
+                        ${periodOptions}
+                    </select>
+                </div>
+                <div class="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200 shadow-inner flex-shrink-0">
+                    <span class="text-xs font-bold text-slate-500 px-2 uppercase tracking-wider hidden md:block">Parcial</span>
+                    ${[1, 2, 3].map(par => `
+                        <button onclick="setGlobalPartial(${par})" class="px-3 py-1.5 rounded-lg text-sm font-bold transition-all ${State.globalPartial === par ? 'bg-white text-blue-700 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50'}">${par}</button>
+                    `).join('')}
+                </div>
+            </div>`;
+            document.getElementById('global-filters').innerHTML = html;
+        }
+
+        // --- DASHBOARD ---
+        function getDashboardHTML() {
+            const metrics = getGlobalMetrics();
+            
+            // Tareas solo de materias del periodo actual
+            const currentPerTasks = State.tasks.filter(t => {
+                const sub = getSubjectInfo(t.subjectId);
+                return parseInt(sub.period) === State.globalPeriod;
+            });
+            
+            const pendingTasksCount = currentPerTasks.filter(t => !t.completed).length;
+            const tasksToday = currentPerTasks.filter(t => !t.completed && t.dueDate === todayStr);
+            const upcomingExams = currentPerTasks.filter(t => !t.completed && t.type === 'exam' && t.dueDate >= todayStr).sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+            let examsHTML = upcomingExams.length === 0 ? `
+                <div class="text-center py-8 bg-slate-50 rounded-2xl">
+                    <p class="text-slate-500 font-medium">No hay exámenes programados pronto.</p>
+                </div>` : 
+                `<div class="space-y-4">` + upcomingExams.map(exam => `
+                    <div class="flex items-center p-4 bg-red-50/50 border border-red-100 rounded-2xl">
+                        <div class="bg-red-100 text-red-600 px-4 py-2 rounded-xl font-bold text-center mr-4 min-w-[70px]">
+                            <div class="text-sm uppercase">${new Date(exam.dueDate + 'T12:00:00').toLocaleDateString('es-ES', {month:'short'})}</div>
+                            <div class="text-xl">${new Date(exam.dueDate + 'T12:00:00').getDate()}</div>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 text-lg">${exam.title}</p>
+                            <p class="text-sm text-slate-600 flex items-center mt-1">
+                                <span class="w-2 h-2 rounded-full mr-2 ${getSubjectInfo(exam.subjectId).color}"></span>
+                                ${getSubjectInfo(exam.subjectId).name}
+                            </p>
+                        </div>
+                    </div>`).join('') + `</div>`;
+
+            let tasksTodayHTML = tasksToday.length === 0 ? `
+                <div class="text-center py-8 bg-slate-50 rounded-2xl">
+                    <p class="text-slate-500 font-medium">Día libre de tareas para el Período ${State.globalPeriod}.</p>
+                </div>` : 
+                `<div class="space-y-3">` + tasksToday.map(task => `
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition-colors">
+                        <div class="flex items-start space-x-4">
+                            <button onclick="toggleTask('${task.id}')" class="text-slate-400 hover:text-blue-500 transition-colors mt-1">
+                                <i data-lucide="circle" class="w-6 h-6"></i>
+                            </button>
+                            <div>
+                                <p class="font-bold text-slate-700">${task.title}</p>
+                                <p class="text-sm text-slate-500">${getSubjectInfo(task.subjectId).name}</p>
+                            </div>
+                        </div>
+                    </div>`).join('') + `</div>`;
+
+            return `
+            <div class="space-y-6 animate-fade-in">
+                <div class="bg-gradient-to-r from-blue-700 via-indigo-600 to-blue-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                        <i data-lucide="graduation-cap" class="w-48 h-48"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <h2 class="text-4xl font-extrabold mb-2">¡Hola, Alexander! 👋</h2>
+                        <p class="text-blue-100 text-lg">Resumen de tus clases del <strong>Período ${State.globalPeriod}</strong> • Parcial ${State.globalPartial}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:border-orange-200 transition-colors">
+                        <div>
+                            <p class="text-sm text-slate-500 font-medium mb-1">Tareas (Per. ${State.globalPeriod})</p>
+                            <p class="text-4xl font-bold text-slate-800">${pendingTasksCount}</p>
+                        </div>
+                        <div class="p-4 bg-orange-50 text-orange-500 rounded-2xl group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                            <i data-lucide="clock" class="w-8 h-8"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:border-blue-200 transition-colors">
+                        <div>
+                            <p class="text-sm text-slate-500 font-medium mb-1">Promedio Parcial ${State.globalPartial}</p>
+                            <p class="text-4xl font-bold text-slate-800">${metrics.currentPartialAvg}%</p>
+                        </div>
+                        <div class="p-4 bg-blue-50 text-blue-500 rounded-2xl group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                            <i data-lucide="target" class="w-8 h-8"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between group hover:border-emerald-200 transition-colors">
+                        <div>
+                            <p class="text-sm text-slate-500 font-medium mb-1">Promedio Período ${State.globalPeriod}</p>
+                            <p class="text-4xl font-bold text-slate-800">${metrics.currentPerAvg}%</p>
+                        </div>
+                        <div class="p-4 bg-emerald-50 text-emerald-500 rounded-2xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                            <i data-lucide="graduation-cap" class="w-8 h-8"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                            <i data-lucide="alert-circle" class="mr-3 text-red-500 w-6 h-6"></i> Exámenes Próximos
+                        </h3>
+                        ${examsHTML}
+                    </div>
+
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                            <i data-lucide="calendar-check" class="mr-3 text-blue-500 w-6 h-6"></i> Tareas para Hoy
+                        </h3>
+                        ${tasksTodayHTML}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // --- AGENDA ---
+        function getAgendaHTML() {
+            // Filtrar tareas 
+            let filteredTasks = [...State.tasks];
+            const todayObj = new Date(todayStr);
+            const todayD = new Date();
+
+            switch (State.agendaDateFilter) {
+                case 'today': filteredTasks = filteredTasks.filter(t => t.dueDate === todayStr); break;
+                case 'tomorrow': filteredTasks = filteredTasks.filter(t => t.dueDate === tomorrowStr); break;
+                case 'next7':
+                    const next7Date = new Date(todayObj); next7Date.setDate(next7Date.getDate() + 7);
+                    filteredTasks = filteredTasks.filter(t => new Date(t.dueDate) >= todayObj && new Date(t.dueDate) <= next7Date); break;
+                case 'thisMonth':
+                    filteredTasks = filteredTasks.filter(t => {
+                        const d = new Date(t.dueDate + 'T12:00:00');
+                        return d.getMonth() === todayD.getMonth() && d.getFullYear() === todayD.getFullYear();
+                    }); break;
+                default: break;
+            }
+            filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+            let contentHTML = '';
+
+            if (State.agendaView === 'list') {
+                const groupedTasks = filteredTasks.reduce((acc, task) => {
+                    const date = task.dueDate;
+                    if (!acc[date]) acc[date] = [];
+                    acc[date].push(task);
+                    return acc;
+                }, {});
+                const sortedDates = Object.keys(groupedTasks).sort((a, b) => new Date(a) - new Date(b));
+
+                const filtersHTML = [
+                    { id: 'all', label: 'Todas' }, { id: 'today', label: 'Hoy' }, { id: 'tomorrow', label: 'Mañana' },
+                    { id: 'next7', label: 'Próx. 7 días' }, { id: 'thisMonth', label: 'Este mes' }
+                ].map(f => `
+                    <button onclick="setAgendaFilter('${f.id}')" class="px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-all border ${State.agendaDateFilter === f.id ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">${f.label}</button>
+                `).join('');
+
+                let datesHTML = sortedDates.length === 0 ? `
+                    <div class="bg-white p-16 text-center rounded-3xl shadow-sm border border-slate-100">
+                        <i data-lucide="calendar-check" class="w-16 h-16 mx-auto text-slate-200 mb-6"></i>
+                        <h3 class="text-xl font-bold text-slate-600 mb-2">Todo al día</h3>
+                        <p class="text-slate-400 max-w-md mx-auto">No tienes tareas para este filtro.</p>
+                    </div>` : 
+                    `<div class="space-y-8">` + sortedDates.map(date => {
+                        const dateObj = new Date(date + 'T12:00:00');
+                        const isPast = date < todayStr;
+                        const isToday = date === todayStr;
+                        let dateLabel = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                        if (isToday) dateLabel = `Hoy - ${dateLabel}`;
+                        if (date === tomorrowStr) dateLabel = `Mañana - ${dateLabel}`;
+
+                        const tasksHTML = groupedTasks[date].map(task => {
+                            const isExpanded = State.expandedTaskId === task.id;
+                            const progress = task.subtasks && task.subtasks.length > 0 
+                                ? Math.round((task.subtasks.filter(st => st.completed).length / task.subtasks.length) * 100) : task.completed ? 100 : 0;
+                            const subject = getSubjectInfo(task.subjectId);
+
+                            let subtasksHTML = '';
+                            if (task.subtasks && task.subtasks.length > 0) {
+                                subtasksHTML = `
+                                <div class="space-y-2 mt-4">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Subtareas</h4>
+                                        <span class="text-xs font-bold text-blue-600">${progress}%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-1.5 mb-4">
+                                        <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                                    </div>
+                                    ${task.subtasks.map(st => `
+                                        <div class="flex items-center space-x-3 group cursor-pointer" onclick="event.stopPropagation(); toggleSubtask('${task.id}', '${st.id}')">
+                                            <button class="transition-colors ${st.completed ? 'text-emerald-500' : 'text-slate-300 group-hover:text-blue-400'}">
+                                                ${st.completed ? `<i data-lucide="check-square" class="w-5 h-5"></i>` : `<div class="w-[18px] h-[18px] border-2 rounded border-current"></div>`}
+                                            </button>
+                                            <span class="text-sm ${st.completed ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}">${st.title}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>`;
+                            }
+
+                            return `
+                            <div class="bg-white rounded-2xl border transition-all duration-200 overflow-hidden ${task.completed ? 'border-slate-100 opacity-60' : 'border-slate-200 shadow-sm hover:border-blue-300'}">
+                                <div class="p-4 flex items-start justify-between cursor-pointer" onclick="toggleExpandTask('${task.id}')">
+                                    <div class="flex items-start space-x-4">
+                                        <button onclick="event.stopPropagation(); toggleTask('${task.id}')" class="mt-0.5 transition-colors ${task.completed ? 'text-emerald-500' : 'text-slate-300 hover:text-emerald-400'}">
+                                            ${task.completed ? `<i data-lucide="check-circle" class="w-7 h-7"></i>` : `<i data-lucide="circle" class="w-7 h-7"></i>`}
+                                        </button>
+                                        <div>
+                                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                                <span class="px-2 py-0.5 rounded text-white text-xs font-bold ${subject.color}">${subject.name} (Per. ${subject.period})</span>
+                                                <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded uppercase">${task.type}</span>
+                                            </div>
+                                            <p class="font-bold text-lg ${task.completed ? 'text-slate-400 line-through' : 'text-slate-800'}">${task.title}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button onclick="event.stopPropagation(); openTaskModal('${task.id}')" class="text-slate-300 hover:text-blue-500 p-2 transition-colors rounded-xl hover:bg-blue-50" title="Editar Tarea">
+                                            <i data-lucide="pencil" class="w-5 h-5"></i>
+                                        </button>
+                                        <button onclick="event.stopPropagation(); deleteTask('${task.id}')" class="text-slate-300 hover:text-red-500 p-2 transition-colors rounded-xl hover:bg-red-50" title="Eliminar Tarea">
+                                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                        </button>
+                                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}"></i>
+                                    </div>
+                                </div>
+                                ${isExpanded ? `
+                                <div class="px-14 pb-5 pt-2 border-t border-slate-50 bg-slate-50/50 animate-fade-in cursor-default" onclick="event.stopPropagation()">
+                                    ${task.description ? `<div class="mb-4 text-slate-600 text-sm flex items-start"><i data-lucide="align-left" class="w-4 h-4 mr-2 mt-0.5 text-slate-400 flex-shrink-0"></i><p class="whitespace-pre-wrap">${task.description}</p></div>` : ''}
+                                    ${subtasksHTML}
+                                </div>` : ''}
+                            </div>`;
+                        }).join('');
+
+                        return `
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-bold capitalize flex items-center ${isPast ? 'text-red-500' : isToday ? 'text-blue-600' : 'text-slate-700'}">
+                                ${dateLabel} ${isPast ? `<span class="ml-3 text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full uppercase tracking-wider font-bold">Vencido</span>` : ''}
+                            </h3>
+                            <div class="space-y-3">${tasksHTML}</div>
+                        </div>`;
+                    }).join('') + `</div>`;
+
+                contentHTML = `<div class="flex overflow-x-auto pb-2 space-x-2 hide-scrollbar">${filtersHTML}</div>${datesHTML}`;
+            } else {
+                contentHTML = `<div class="bg-white p-8 text-center rounded-3xl border border-slate-100 shadow-sm"><i data-lucide="calendar" class="w-16 h-16 mx-auto text-blue-500 mb-4"></i><h3 class="text-xl font-bold">Vista de Calendario</h3><p class="text-slate-500 mt-2">Vuelve a la vista de "Lista" para ver los detalles. El calendario complejo ha sido simplificado en esta vista.</p></div>`;
+            }
+
+            return `
+            <div class="space-y-6 animate-fade-in">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-3xl font-extrabold text-slate-800">Agenda</h2>
+                    <button onclick="openTaskModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center font-bold transition-colors shadow-md shadow-blue-500/20">
+                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i> Tarea
+                    </button>
+                </div>
+                ${contentHTML}
+            </div>`;
+        }
+
+        // --- NOTAS (GRADEBOOK CON SUMA DE PARCIALES Y 12 PERIODOS) ---
+        function getGradesListHTML() {
+            // Solo mostramos las materias que pertenecen al periodo global activo
+            const activeSubjects = State.subjects.filter(s => parseInt(s.period) === State.globalPeriod);
+
+            let subjectsHTML = activeSubjects.length === 0 ? `
+                <div class="col-span-full bg-white p-16 text-center rounded-3xl shadow-sm border border-slate-100">
+                    <i data-lucide="book-open" class="w-16 h-16 mx-auto text-slate-200 mb-6"></i>
+                    <h3 class="text-xl font-bold text-slate-600 mb-2">Sin materias en el Período ${State.globalPeriod}</h3>
+                    <p class="text-slate-400 max-w-md mx-auto">Añade materias asignadas a este período para empezar a gestionar tus calificaciones.</p>
+                </div>` : 
+                activeSubjects.map(subject => {
+                    const p1 = getPartialSum(subject.id, 1);
+                    const p2 = getPartialSum(subject.id, 2);
+                    const p3 = getPartialSum(subject.id, 3);
+                    const final = getSubjectFinalAverage(subject.id);
+
+                    return `
+                    <div onclick="setSelectedSubject('${subject.id}')" class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden group cursor-pointer hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col h-full relative">
+                        <div class="absolute top-4 right-4 bg-slate-100 px-3 py-1 rounded-full text-xs font-bold text-slate-500 uppercase tracking-wider border border-slate-200">
+                            Período ${subject.period}
+                        </div>
+                        <div class="h-4 ${subject.color} w-full"></div>
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-6 pt-4">
+                                <div>
+                                    <h3 class="text-2xl font-bold text-slate-800 leading-tight mb-1 group-hover:text-indigo-600 transition-colors">${subject.name}</h3>
+                                    <p class="text-sm font-medium text-slate-500 flex items-center">${subject.teacher || 'Sin profesor'}</p>
+                                </div>
+                                <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="event.stopPropagation(); openSubjectModal('${subject.id}')" class="text-slate-400 hover:text-blue-500 p-2 rounded-xl hover:bg-blue-50 transition-colors" title="Editar Materia">
+                                        <i data-lucide="pencil" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-auto space-y-4">
+                                <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                                    <div class="bg-slate-50 rounded-xl p-2 border border-slate-100" title="Suma Parcial 1">
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Parcial 1</p>
+                                        <p class="font-bold ${p1 > 0 ? 'text-slate-700' : 'text-slate-300'}">${p1 > 0 ? `${p1}pts` : '-'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-xl p-2 border border-slate-100" title="Suma Parcial 2">
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Parcial 2</p>
+                                        <p class="font-bold ${p2 > 0 ? 'text-slate-700' : 'text-slate-300'}">${p2 > 0 ? `${p2}pts` : '-'}</p>
+                                    </div>
+                                    <div class="bg-slate-50 rounded-xl p-2 border border-slate-100" title="Suma Parcial 3">
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Parcial 3</p>
+                                        <p class="font-bold ${p3 > 0 ? 'text-slate-700' : 'text-slate-300'}">${p3 > 0 ? `${p3}pts` : '-'}</p>
+                                    </div>
+                                </div>
+                                <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+                                    <span class="text-sm font-bold text-slate-500 uppercase">Promedio Periodo</span>
+                                    <span class="text-3xl font-extrabold ${final >= 70 ? 'text-emerald-500' : final > 0 ? 'text-red-500' : 'text-slate-300'}">${final}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+            return `
+            <div class="space-y-6 animate-fade-in">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-slate-800">Calificaciones (Per. ${State.globalPeriod})</h2>
+                        <p class="text-slate-500 mt-1">Ingresa a cada materia para registrar tus notas por parcial.</p>
+                    </div>
+                    <button onclick="openSubjectModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl flex items-center font-bold transition-colors shadow-md shadow-indigo-500/20">
+                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i> Materia
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${subjectsHTML}
+                </div>
+            </div>`;
+        }
+
+        function getSubjectGradesDetailHTML(subjectId) {
+            const subject = getSubjectInfo(subjectId);
+            const finalAvg = getSubjectFinalAverage(subjectId);
+
+            let partialsHTML = [1, 2, 3].map(p => {
+                const pSum = getPartialSum(subjectId, p);
+                const gradesInPartial = State.grades.filter(g => g.subjectId === subjectId && g.partial === p);
+                
+                let gradesListHTML = gradesInPartial.length === 0 ? `<p class="text-sm text-slate-400 italic text-center py-4">Aún no hay notas</p>` :
+                    `<div class="space-y-3 mt-4">` + gradesInPartial.map(g => `
+                        <div class="flex justify-between items-center bg-white border border-slate-100 p-3 rounded-xl shadow-sm group">
+                            <div>
+                                <p class="text-sm font-bold text-slate-700">${g.title}</p>
+                                <p class="text-xs text-slate-400">${g.date}</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="text-right">
+                                    <p class="font-bold text-slate-800" title="Puntos sumados al parcial">+ ${g.score}</p>
+                                    <p class="text-[10px] font-bold text-slate-400">de ${g.maxScore} pts</p>
+                                </div>
+                                <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="openGradeModal('${subject.id}', ${p}, '${g.id}')" class="text-slate-400 hover:text-blue-500 p-1" title="Editar Nota"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                    <button onclick="deleteGrade('${g.id}')" class="text-red-300 hover:text-red-500 p-1" title="Eliminar Nota"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') + `</div>`;
+
+                return `
+                <div class="bg-slate-50 rounded-3xl border border-slate-200 overflow-hidden flex flex-col h-full relative">
+                    ${State.globalPartial === p ? `<div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>` : ''}
+                    <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-white">
+                        <h3 class="font-bold text-slate-800">Parcial ${p}</h3>
+                        <div class="text-right">
+                            <span class="block text-[10px] uppercase font-bold text-slate-400">Total Sumado</span>
+                            <span class="px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-lg text-sm font-extrabold text-indigo-700 shadow-inner">${pSum} / 100</span>
+                        </div>
+                    </div>
+                    <div class="p-5 flex-1 custom-scrollbar overflow-y-auto max-h-[400px]">
+                        ${gradesListHTML}
+                    </div>
+                    <div class="p-4 bg-white border-t border-slate-200">
+                        <button onclick="openGradeModal('${subject.id}', ${p})" class="w-full py-2.5 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 font-bold hover:border-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all flex justify-center items-center">
+                            <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Añadir Puntos
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+
+            return `
+            <div class="space-y-6 animate-fade-in">
+                <div class="flex justify-between items-center">
+                    <button onclick="setSelectedSubject(null)" class="flex items-center px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-indigo-600 hover:border-indigo-200 font-bold transition-all shadow-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Volver a materias
+                    </button>
+                    <div class="flex space-x-2">
+                        <button onclick="openSubjectModal('${subject.id}')" class="text-blue-500 hover:bg-blue-50 px-4 py-2 rounded-xl font-bold transition-colors flex items-center">
+                            <i data-lucide="pencil" class="w-4 h-4 mr-2"></i> Editar Materia
+                        </button>
+                        <button onclick="deleteSubject('${subject.id}')" class="text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl font-bold transition-colors flex items-center">
+                            <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Eliminar Materia
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-3xl shadow-sm border-t-8 ${subject.color.replace('bg-', 'border-')} border-x border-b border-x-slate-200 border-b-slate-200 p-8 flex justify-between items-center relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 opacity-5">
+                        <i data-lucide="book-open" class="w-64 h-64"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <span class="inline-block px-3 py-1 bg-slate-100 border border-slate-200 text-slate-500 rounded-lg text-xs font-bold uppercase tracking-wider mb-3">Período ${subject.period}</span>
+                        <h2 class="text-4xl font-extrabold text-slate-800 mb-2">${subject.name}</h2>
+                        <p class="text-lg text-slate-500 font-medium flex items-center"><i data-lucide="user" class="w-5 h-5 mr-2"></i> ${subject.teacher || 'Sin profesor asignado'}</p>
+                    </div>
+                    <div class="relative z-10 text-right bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
+                        <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Promedio Final del Período</p>
+                        <p class="text-5xl font-extrabold ${finalAvg >= 70 ? 'text-emerald-500' : finalAvg > 0 ? 'text-red-500' : 'text-slate-300'}">${finalAvg}%</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    ${partialsHTML}
+                </div>
+            </div>`;
+        }
+
+        // --- CONFIGURACIÓN ---
+        function getSettingsHTML() {
+            const set = State.settings;
+            
+            // Generar los 12 periodos organizados en 4 años escolares
+            let periodsHTML = '';
+            for (let year = 1; year <= 4; year++) {
+                let pStart = (year - 1) * 3 + 1;
+                let pEnd = year * 3;
+                
+                let yearFields = '';
+                for (let p = pStart; p <= pEnd; p++) {
+                    yearFields += `
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-3">
+                            <h4 class="text-sm font-bold text-slate-700 mb-3 border-b border-slate-200 pb-2"><i data-lucide="calendar-range" class="w-4 h-4 inline mr-1 text-indigo-500"></i> Período ${p}</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1">Fecha de Inicio</label>
+                                    <input type="date" name="per${p}_start" value="${set.periods[p]?.start || ''}" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-1">Fecha de Fin</label>
+                                    <input type="date" name="per${p}_end" value="${set.periods[p]?.end || ''}" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white" />
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                periodsHTML += `
+                <details class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm group mb-4">
+                    <summary class="p-5 font-bold text-lg text-slate-800 flex justify-between items-center bg-white hover:bg-slate-50 transition-colors focus:outline-none">
+                        <div class="flex items-center"><i data-lucide="graduation-cap" class="w-5 h-5 mr-3 text-indigo-500"></i> Año ${year} (Períodos ${pStart} al ${pEnd})</div>
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div class="p-6 border-t border-slate-200 bg-slate-50/30">
+                        ${yearFields}
+                    </div>
+                </details>
+                `;
+            }
+
+            return `
+            <div class="space-y-6 animate-fade-in max-w-4xl mx-auto pb-10">
+                <div class="bg-gradient-to-r from-slate-800 to-slate-700 rounded-3xl p-8 text-white shadow-xl flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-extrabold mb-2">Configuración Escolar</h2>
+                        <p class="text-slate-300">Define las fechas de tus 12 periodos. La agenda calculará en qué parcial estás basada en estas fechas.</p>
+                    </div>
+                    <i data-lucide="settings" class="w-16 h-16 text-slate-500 opacity-50 hidden sm:block"></i>
+                </div>
+
+                <form onsubmit="handleSaveSettings(event)" class="space-y-6">
+                    <div class="bg-indigo-50 p-6 border border-indigo-100 rounded-2xl shadow-sm">
+                        <label class="block text-sm font-bold text-indigo-900 mb-2 flex items-center">
+                            <i data-lucide="clock" class="w-5 h-5 mr-2"></i> Duración de cada parcial (en días)
+                        </label>
+                        <p class="text-xs text-indigo-700 mb-4">Usaremos este número para calcular automáticamente en qué parcial estás.</p>
+                        <input required type="number" name="partialDurationDays" value="${set.partialDurationDays || 30}" class="w-full md:w-1/3 px-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold text-slate-800 bg-white" placeholder="Ej. 30" />
+                    </div>
+
+                    ${periodsHTML}
+
+                    <div class="sticky bottom-6 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-lg flex justify-end">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-md shadow-indigo-500/30 transition-all flex items-center">
+                            <i data-lucide="save" class="w-5 h-5 mr-2"></i> Guardar Configuración
+                        </button>
+                    </div>
+                </form>
+            </div>`;
+        }
+
+        // --- ARRANQUE ---
+        autoDetectPeriod(); 
+        renderApp();
+    </script>
+</body>
+</html>

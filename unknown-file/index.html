@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra Incognito Mode</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Consolas:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Consolas', monospace;
+            background: #000000;
+            color: #00FF00;
+            overflow: hidden;
+            cursor: none;
+        }
+        
+        .custom-cursor {
+            position: fixed;
+            width: 10px;
+            height: 16px;
+            background: #00FFFF;
+            pointer-events: none;
+            z-index: 9999;
+            animation: cursor-blink 1s infinite;
+        }
+        
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #00FFFF;
+            animation: glitch 2s infinite;
+            position: relative;
+        }
+        
+        @keyframes glitch {
+            0% { text-shadow: 0 0 20px #00FFFF; }
+            25% { text-shadow: -2px 0 #FF0000, 2px 0 #0000FF; }
+            50% { text-shadow: 0 0 20px #00FFFF; }
+            75% { text-shadow: 2px 0 #FF0000, -2px 0 #0000FF; }
+            100% { text-shadow: 0 0 20px #00FFFF; }
+        }
+        
+        .progress-container {
+            width: 60%;
+            height: 20px;
+            border: 2px solid #00FFFF;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00FFFF 0%, #32CD32 100%);
+            width: 0%;
+            animation: pulse 1s infinite;
+            transition: width 0.3s ease;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+        
+        .boot-logs {
+            width: 80%;
+            height: 200px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00FF00;
+            padding: 10px;
+            font-size: 12px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .tls-lock {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #00FFFF;
+            animation: lock-blink 3s infinite;
+        }
+        
+        @keyframes lock-blink {
+            0%, 90% { opacity: 1; }
+            95%, 100% { opacity: 0.3; }
+        }
+        
+        .main-interface {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            flex-direction: column;
+        }
+        
+        .status-bar {
+            height: 40px;
+            background: rgba(0, 255, 0, 0.1);
+            border-bottom: 1px solid #00FF00;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 12px;
+        }
+        
+        .status-indicators {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #32CD32;
+            animation: indicator-pulse 2s infinite;
+        }
+        
+        @keyframes indicator-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+        }
+        
+        .terminal-panel {
+            width: 50%;
+            background: #000000;
+            border-right: 1px solid #00FF00;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .terminal-header {
+            height: 30px;
+            background: rgba(0, 255, 0, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 12px;
+            border-bottom: 1px solid #00FF00;
+        }
+        
+        .terminal-content {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        
+        .browser-panel {
+            width: 50%;
+            background: #111111;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .browser-header {
+            height: 50px;
+            background: rgba(0, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+            border-bottom: 1px solid #00FFFF;
+        }
+        
+        .url-bar {
+            flex: 1;
+            background: #000000;
+            border: 1px solid #00FFFF;
+            color: #00FFFF;
+            padding: 8px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+        
+        .browser-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .command-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .cmd-btn {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid #00FFFF;
+            color: #00FFFF;
+            padding: 8px 16px;
+            font-family: 'Consolas', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .cmd-btn:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 10px #00FFFF;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00FF00;
+            padding: 15px;
+            font-size: 12px;
+            max-width: 400px;
+            z-index: 999;
+            animation: notification-slide 0.5s ease;
+        }
+        
+        @keyframes notification-slide {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        .prompt {
+            color: #00FF00;
+            margin-bottom: 5px;
+        }
+        
+        .output {
+            color: #00FFFF;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+        
+        .error {
+            color: #FF4444;
+        }
+        
+        .warning {
+            color: #FFAA00;
+        }
+        
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.03) 2px,
+                rgba(0, 255, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .typing-animation {
+            animation: typing 2s steps(40, end);
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        .hex-display {
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            color: #32CD32;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border: 1px solid #32CD32;
+            margin: 10px 0;
+        }
+        
+        .ascii-art {
+            font-family: 'Consolas', monospace;
+            font-size: 10px;
+            color: #00FFFF;
+            white-space: pre;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor"></div>
+    <div class="scanlines"></div>
+    
+    <!-- Boot Screen -->
+    <div class="boot-screen" id="bootScreen">
+        <div class="tls-lock">🔒</div>
+        <div class="logo">ULTRA INCOGNITO MODE</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="boot-logs" id="bootLogs"></div>
+    </div>
+    
+    <!-- Main Interface -->
+    <div class="main-interface" id="mainInterface">
+        <div class="status-bar">
+            <div class="status-indicators">
+                <div class="indicator">
+                    <div class="indicator-dot"></div>
+                    <span>PING 10.42.0.1: 28ms</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-dot"></div>
+                    <span>IP: 127.42.42.42</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-dot"></div>
+                    <span>VPN: AES-256-GCM ENABLED</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-dot"></div>
+                    <span>FIREWALL: IPTABLES ACTIVE</span>
+                </div>
+                <div class="indicator">
+                    <div class="indicator-dot"></div>
+                    <span>IDS: SNORT ONLINE</span>
+                </div>
+            </div>
+            <div>
+                <span id="currentTime"></span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="terminal-panel">
+                <div class="terminal-header">
+                    SSH Terminal - root@hidden_node
+                </div>
+                <div class="terminal-content" id="terminalContent">
+                    <div class="prompt">[root@hidden_node ~]$ _</div>
+                </div>
+            </div>
+            
+            <div class="browser-panel">
+                <div class="browser-header">
+                    <span>🌐</span>
+                    <input type="text" class="url-bar" id="urlBar" value="https://3g2upl4pq6kufc4m.onion/search" readonly>
+                    <span>🔒</span>
+                </div>
+                <div class="browser-content">
+                    <div class="command-buttons">
+                        <button class="cmd-btn" onclick="executeCommand('traceroute')" title="traceroute -I -n">TraceRoute</button>
+                        <button class="cmd-btn" onclick="executeCommand('netstat')" title="netstat -anp">Netstat</button>
+                        <button class="cmd-btn" onclick="executeCommand('tcpdump')" title="TCPDump Capture">TCPDump</button>
+                        <button class="cmd-btn" onclick="executeCommand('ssh')" title="SSH Tunnel Manager">SSH Tunnel</button>
+                        <button class="cmd-btn" onclick="executeCommand('payload')" title="Payload Injector">Payload</button>
+                    </div>
+                    
+                    <div class="ascii-art">
+ ██████╗ ███╗   ██╗██╗ ██████╗ ███╗   ██╗    ███╗   ██╗███████╗████████╗
+██╔═══██╗████╗  ██║██║██╔═══██╗████╗  ██║    ████╗  ██║██╔════╝╚══██╔══╝
+██║   ██║██╔██╗ ██║██║██║   ██║██╔██╗ ██║    ██╔██╗ ██║█████╗     ██║   
+██║   ██║██║╚██╗██║██║██║   ██║██║╚██╗██║    ██║╚██╗██║██╔══╝     ██║   
+╚██████╔╝██║ ╚████║██║╚██████╔╝██║ ╚████║    ██║ ╚████║███████╗   ██║   
+ ╚═════╝ ╚═╝  ╚═══╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═╝  ╚═══╝╚══════╝   ╚═╝   
+                    </div>
+                    
+                    <div class="hex-display" id="hexDisplay">
+                        <div>FROM: [0x3A5F9C1B]</div>
+                        <div>TO: [root@hidden_node]</div>
+                        <div>PROTOCOL: ChaCha20-Poly1305 Encoded Payload</div>
+                        <div>TIMESTAMP: 2025-07-15T21:15:32Z</div>
+                        <div>PAYLOAD: 4d657373616a6520736563726574206465636f646966696361646f</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <audio id="audioContext" style="display: none;">
+        <source src="" type="audio/mpeg">
+    </audio>
+    
+    <script>
+        // Audio context for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Sound effects
+        function playBeep(frequency = 800, duration = 100) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'square';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+        }
+        
+        function playKeyboardClick() {
+            playBeep(1200, 50);
+        }
+        
+        function playNotification() {
+            playBeep(600, 200);
+        }
+        
+        function playError() {
+            playBeep(300, 500);
+        }
+        
+        // Custom cursor
+        document.addEventListener('mousemove', (e) => {
+            const cursor = document.querySelector('.custom-cursor');
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+        
+        // Boot sequence
+        const bootLogs = [
+            "[SYS_INIT] Kernel patching: OK",
+            "[NET_DRV] Configurando interfaz eth0: UP",
+            "[VPN] Estableciendo túnel encrypted SOCKS5 proxy (AES-256-GCM)...",
+            "[AUTH] Handshake TLS 1.3 con servidor onion: SUCCESS",
+            "[FIREWALL] Reglas iptables cargadas: 42 reglas activas",
+            "[MEMORY] Swap file cifrado activado (LUKS encrypted)",
+            "[ACCESS] Credenciales 2FA autenticadas. Modo Ultra Incognito habilitado."
+        ];
+        
+        let bootProgress = 0;
+        let logIndex = 0;
+        
+        function updateBootScreen() {
+            const progressBar = document.getElementById('progressBar');
+            const bootLogsDiv = document.getElementById('bootLogs');
+            
+            if (bootProgress < 100) {
+                bootProgress += Math.random() * 15 + 5;
+                if (bootProgress > 100) bootProgress = 100;
+                
+                progressBar.style.width = bootProgress + '%';
+                
+                if (logIndex < bootLogs.length && Math.random() > 0.3) {
+                    const logLine = document.createElement('div');
+                    logLine.textContent = bootLogs[logIndex];
+                    logLine.style.animation = 'typing 1s steps(40, end)';
+                    bootLogsDiv.appendChild(logLine);
+                    bootLogsDiv.scrollTop = bootLogsDiv.scrollHeight;
+                    
+                    playBeep(800, 100);
+                    logIndex++;
+                }
+                
+                setTimeout(updateBootScreen, 800 + Math.random() * 400);
+            } else {
+                playBeep(1000, 300);
+                setTimeout(() => {
+                    document.getElementById('bootScreen').style.display = 'none';
+                    document.getElementById('mainInterface').style.display = 'flex';
+                    // Change browser URL to simulate .onion address after boot
+                    history.pushState({}, '', '/3g2upl4pq6kufc4m.onion/search');
+                    startMainInterface();
+                }, 1000);
+            }
+        }
+        
+        // Terminal commands
+        const terminalCommands = {
+            'help': 'Comandos disponibles: ls, ps, netstat, iptables, nmap, ssh, exit',
+            'ls': 'total 42\ndrwxr-xr-x 2 root root 4096 Jul 15 21:15 .\ndrwxr-xr-x 3 root root 4096 Jul 15 21:14 ..\n-rw-r--r-- 1 root root  256 Jul 15 21:15 .encrypted_keys\n-rwxr-xr-x 1 root root 1024 Jul 15 21:14 tunnel.sh',
+            'ps': 'PID TTY          TIME CMD\n1234 pts/0    00:00:01 ssh\n1235 pts/0    00:00:00 tor\n1236 pts/0    00:00:00 openvpn\n1237 pts/0    00:00:00 iptables',
+            'netstat': 'Active Internet connections (only servers)\nProto Recv-Q Send-Q Local Address           Foreign Address         State\ntcp        0      0 127.0.0.1:9050          0.0.0.0:* LISTEN\ntcp        0      0 127.0.0.1:8080          0.0.0.0:* LISTEN',
+            'iptables': 'Chain INPUT (policy DROP)\ntarget     prot opt source               destination\nACCEPT     tcp  --  anywhere             anywhere             tcp dpt:ssh\nDROP       udp  --  anywhere             anywhere             udp dpt:openvpn',
+            'nmap': 'Starting Nmap 7.80 ( https://nmap.org )\nNmap scan report for hidden_node (127.42.42.42)\nHost is up (0.001s latency).\nPORT     STATE SERVICE\n22/tcp   open  ssh\n9050/tcp open  tor-socks',
+            'ssh': 'SSH tunnel established to 10.42.0.1:22\nEncryption: AES-256-GCM\nAuthentication: RSA-4096 + Ed25519\nStatus: ACTIVE',
+            'exit': 'Cerrando sesión segura...'
+        };
+        
+        function executeCommand(cmd) {
+            const terminalContent = document.getElementById('terminalContent');
+            const responses = {
+                'traceroute': 'traceroute to 10.42.0.1 (10.42.0.1), 30 hops max\n 1  127.42.42.42 (127.42.42.42)  1.234 ms\n 2  10.42.0.1 (10.42.0.1)  28.456 ms\n 3  * * *\n 4  hidden.onion (10.42.0.1)  45.789 ms',
+                'netstat': 'Active connections:\nTCP  127.0.0.1:9050  0.0.0.0:0  LISTENING\nTCP  127.0.0.1:8080  0.0.0.0:0  LISTENING\nTCP  10.42.0.1:22   127.42.42.42:2222  ESTABLISHED',
+                'tcpdump': 'tcpdump: listening on eth0, link-type EN10MB\n21:15:32.123456 IP 127.42.42.42.2222 > 10.42.0.1.22: Flags [P.], seq 1:49, ack 1, win 65535\n21:15:32.124789 IP 10.42.0.1.22 > 127.42.42.42.2222: Flags [.], ack 49, win 65535',
+                'ssh': 'SSH Tunnel Manager:\nTunnel 1: 127.0.0.1:8080 -> 10.42.0.1:80 [ACTIVE]\nTunnel 2: 127.0.0.1:3306 -> 10.42.0.1:3306 [ACTIVE]\nEncryption: AES-256-GCM\nAuthentication: Ed25519',
+                'payload': '[PAYLOAD INJECTOR]\nTarget: 10.42.0.1:80\nPayload: XSS Vector\nStatus: Injected\nResponse: 200 OK\nBypass: WAF Detected - Using encoding'
+            };
+            
+            playKeyboardClick();
+            
+            const commandDiv = document.createElement('div');
+            commandDiv.innerHTML = `
+                <div class="prompt">[root@hidden_node ~]$ ${cmd}</div>
+                <div class="output">${responses[cmd] || 'Comando no reconocido'}</div>
+                <div class="prompt">[root@hidden_node ~]$ _</div>
+            `;
+            
+            terminalContent.appendChild(commandDiv);
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+        }
+        
+        // Keyboard input handler
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                playKeyboardClick();
+            }
+        });
+        
+        // Time update
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES', { 
+                hour12: false,
+                timeZone: 'America/Tegucigalpa'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        // Random notifications
+        function showNotification() {
+            const notifications = [
+                "FROM: [0x7F4A2B1C]\nTO: [root@hidden_node]\nPROTOCOL: ChaCha20-Poly1305\nMESSAGE: Nuevo paquete interceptado",
+                "FIREWALL ALERT:\nBlocked connection attempt from 192.168.1.100\nReason: Unauthorized access",
+                "VPN STATUS:\nHandshake completed with exit node\nLatency: 45ms | Bandwidth: 1.2 Mbps",
+                "IDS ALERT:\nSuspicious packet detected\nSource: Unknown\nAction: Dropped"
+            ];
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = notifications[Math.floor(Math.random() * notifications.length)];
+            
+            document.body.appendChild(notification);
+            playNotification();
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+        
+        // Main interface initialization
+        function startMainInterface() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // Random notifications
+            setInterval(showNotification, 15000 + Math.random() * 10000);
+            
+            // Terminal auto-commands
+            setTimeout(() => {
+                executeCommand('ps');
+            }, 3000);
+            
+            setTimeout(() => {
+                executeCommand('netstat');
+            }, 8000);
+        }
+        
+        // Initialize boot sequence
+        setTimeout(updateBootScreen, 1000);
+        
+        // URL bar click handler
+        document.getElementById('urlBar').addEventListener('click', () => {
+            playKeyboardClick();
+            // Redirect to whatsgoingon.html using an absolute path from the root
+            // IMPORTANT: Adjust this path if whatsgoingon.html is not directly under your domain root.
+            // For example, if it's in /unknown-file/, use '/unknown-file/whatsgoingon.html'
+            window.location.href = '/unknown-file/whatsgoingon.html'; 
+        });
+        
+        // Button click sounds
+        document.querySelectorAll('.cmd-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                playKeyboardClick();
+            });
+        });
+    </script>
+</body>
+</html>

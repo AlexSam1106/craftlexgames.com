@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfiles IPTV</title>
+    <style>
+        /* Fondo animado y partículas */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden; /* Asegura que las partículas no causen scroll */
+            position: relative; /* Necesario para los elementos fijos */
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460, #533483, #7209b7);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: rgba(138, 180, 248, 0.1);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            position: relative; /* Para posicionar el botón de volver */
+            z-index: 1; /* Asegura que el contenido esté sobre el fondo animado */
+        }
+
+        .title {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .profiles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+            align-items: start;
+        }
+
+        .profile-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .profile-item:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            border: 4px solid white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+            transition: background 0.3s ease; /* Transición para el color de fondo */
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar .emoji {
+            font-size: 50px;
+        }
+
+        .profile-avatar .default-icon {
+            width: 60px;
+            height: 60px;
+            fill: #999;
+        }
+
+        .profile-name {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .add-profile-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 3px dashed rgba(255,255,255,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .add-profile-btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .add-icon {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .edit-btn {
+            position: fixed; /* Changed to fixed */
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 10; /* Asegura que esté sobre los perfiles */
+        }
+
+        .edit-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .edit-icon {
+            width: 18px;
+            height: 18px;
+            stroke: #333;
+            stroke-width: 2;
+        }
+
+        /* Botón de volver */
+        .back-btn {
+            position: fixed; /* Changed to fixed */
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .back-icon {
+            width: 20px;
+            height: 20px;
+            stroke: #333;
+            stroke-width: 2;
+        }
+
+        /* Overlay del modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal principal (fondo morado oscuro) */
+        .modal {
+            position: fixed;
+            top: 50%; /* Changed to center vertically */
+            left: 50%; /* Changed to center horizontally */
+            transform: translate(-50%, -50%) scale(0.9); /* Centered and slightly scaled down for animation */
+            width: 100%;
+            max-width: 600px; /* Added max-width for better centering */
+            height: auto; /* Changed to auto to fit content */
+            max-height: 90vh; /* Added max-height to ensure it doesn't overflow viewport */
+            background: linear-gradient(145deg, #1a1a2e 0%, #0f3460 100%); /* Morado oscuro */
+            border-radius: 20px; /* Adjusted border-radius for a floating modal */
+            z-index: 1001;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-y: auto;
+            color: white; /* Asegura que el texto sea visible en fondo oscuro */
+            opacity: 0; /* Start hidden for animation */
+        }
+
+        .modal.active {
+            transform: translate(-50%, -50%) scale(1); /* Scale up to normal size */
+            opacity: 1;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: white; /* Color blanco para el botón de cerrar */
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.1); /* Fondo sutil para el botón de cerrar */
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .profile-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            border: 4px solid #ccc;
+            overflow: hidden;
+            position: relative;
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .profile-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-preview .emoji {
+            font-size: 70px;
+        }
+
+        .profile-preview .default-icon {
+            width: 80px;
+            height: 80px;
+            fill: #999;
+        }
+
+        .preview-name {
+            font-size: 1.2rem;
+            color: white; /* Color blanco para el nombre en el preview */
+            margin-top: -20px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .form-group {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+            background: rgba(255,255,255,0.1); /* Fondo translúcido */
+            color: white; /* Texto blanco */
+            border-color: rgba(255,255,255,0.3); /* Borde translúcido */
+        }
+
+        .name-input::placeholder {
+            color: rgba(255,255,255,0.5); /* Placeholder translúcido */
+        }
+
+        .name-input:focus {
+            border-color: #667eea;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            min-width: 140px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1); /* Fondo translúcido */
+            color: white; /* Texto blanco */
+            border: 2px solid rgba(255,255,255,0.3); /* Borde translúcido */
+        }
+
+        /* Changed btn-success to align with primary design */
+        .btn-success {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Same as btn-primary */
+            color: white;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); /* Red gradient for delete */
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor; /* Usa el color del texto del botón */
+        }
+        .action-btn.btn-secondary svg, .action-btn.btn-delete svg {
+            stroke: white; /* Asegura que los iconos sean blancos en botones secundarios y de eliminar */
+        }
+
+
+        /* Dropdown menus */
+        .dropdown {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dropdown-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            background: linear-gradient(145deg, #1a1a2e 0%, #0f3460 100%); /* Morado oscuro */
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            min-width: 300px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            transform: translate(-50%, -70%); /* Animación de entrada */
+            color: white; /* Texto blanco */
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .dropdown.active .dropdown-content {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+
+        .dropdown-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .image-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .image-option {
+            padding: 15px 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .image-option:hover {
+            border-color: #667eea;
+            background: rgba(255,255,255,0.2);
+        }
+        .image-option svg {
+            stroke: white; /* Iconos blancos */
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .emoji-item {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 24px;
+            transition: background 0.2s ease;
+            background: rgba(255,255,255,0.05); /* Fondo sutil */
+        }
+
+        .emoji-item:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .color-item {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease, border 0.2s ease;
+            border: 3px solid transparent;
+        }
+
+        .color-item:hover {
+            transform: scale(1.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .profile-item.edit-mode .edit-overlay {
+            opacity: 1;
+        }
+
+        .edit-mode-active .profile-item:not(.add-profile) {
+            cursor: pointer;
+        }
+
+        .edit-mode-active .profile-item:not(.add-profile):hover .edit-overlay {
+            opacity: 1;
+        }
+
+        /* Message Box styles (from previous iteration, for alerts) */
+        .message-box {
+            position: fixed;
+            top: 4px; /* Ajustado para estar más arriba */
+            right: 4px; /* Ajustado para estar más a la derecha */
+            padding: 16px; /* Aumentado padding */
+            border-radius: 8px; /* Redondeado */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Sombra suave */
+            color: white;
+            z-index: 10000; /* Alto z-index */
+            transition: all 0.3s ease-in-out;
+            transform: translateX(100%); /* Empieza fuera de la pantalla */
+            opacity: 0;
+        }
+        .message-box.show {
+            transform: translateX(0); /* Se desliza hacia adentro */
+            opacity: 1;
+        }
+        .message-box.success { background-color: #4CAF50; } /* Verde para éxito */
+        .message-box.error { background-color: #F44336; }   /* Rojo para error */
+        .message-box.info { background-color: #2196F3; }    /* Azul para info */
+
+        /* Confirmation Dropdown */
+        .confirm-dropdown .dropdown-content {
+            min-width: 280px;
+            max-width: 90%;
+            text-align: center;
+        }
+        .confirm-dropdown .dropdown-content .action-buttons {
+            margin-top: 20px;
+            justify-content: space-around;
+        }
+
+
+        @media (max-width: 768px) {
+            .profiles-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 20px;
+            }
+            
+            .profile-avatar, .add-profile-btn {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .profile-preview {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .modal {
+                padding: 30px 15px;
+                width: 90%; /* Adjust width for mobile */
+            }
+
+            .dropdown-content {
+                min-width: unset; /* Eliminar min-width en móviles */
+                width: 90%; /* Ajustar ancho */
+            }
+
+            .emoji-grid {
+                grid-template-columns: repeat(5, 1fr); /* Menos columnas en móviles */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fondo animado y partículas -->
+    <div class="animated-bg"></div>
+    <div class="floating-elements">
+        <div class="floating-element" style="width: 60px; height: 60px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-element" style="width: 40px; height: 40px; top: 20%; right: 20%; animation-delay: 2s;"></div>
+        <div class="floating-element" style="width: 80px; height: 80px; bottom: 20%; left: 15%; animation-delay: 4s;"></div>
+        <div class="floating-element" style="width: 50px; height: 50px; bottom: 30%; right: 10%; animation-delay: 1s;"></div>
+    </div>
+
+    <div class="container">
+        <h1 class="title">Selecciona tu Perfil</h1>
+        
+        <!-- Botón de volver -->
+        <button class="back-btn" onclick="goToPreviousPage()">
+            <svg class="back-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+        </button>
+
+        <button class="edit-btn" id="editBtn">
+            <svg class="edit-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+        </button>
+
+        <div class="profiles-grid" id="profilesGrid">
+            <div class="profile-item add-profile" onclick="openModal()">
+                <div class="add-profile-btn">
+                    <svg class="add-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" id="modal" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            
+            <div class="profile-preview" id="profilePreview">
+                <svg class="default-icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+            </div>
+            
+            <div class="preview-name" id="previewName">Nuevo Perfil</div>
+            
+            <div class="form-group">
+                <input type="text" class="name-input" id="nameInput" placeholder="Nombre del perfil" maxlength="20" oninput="updatePreviewName()">
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn btn-secondary" onclick="openImageOptions()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Cargar Imagen
+                </button>
+                
+                <button class="action-btn btn-secondary" onclick="openEmojiPicker()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Usar Emoji
+                </button>
+                
+                <button class="action-btn btn-secondary" id="colorBtn" onclick="openColorPicker()" style="display: none;">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM7 3H5a2 2 0 00-2 2v12a4 4 0 004 4h2M9 3h2a2 2 0 012 2v12a4 4 0 01-2 2H9"/>
+                    </svg>
+                    Color de Fondo
+                </button>
+
+                <button class="action-btn btn-delete" id="deleteProfileBtn" style="display: none;" onclick="confirmDeleteProfile()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Eliminar Perfil
+                </button>
+                
+                <button class="action-btn btn-success" onclick="saveProfile()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Guardar Perfil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dropdowns -->
+    <div class="dropdown" id="imageDropdown" onclick="closeDropdown(event)">
+        <div class="dropdown-content" onclick="event.stopPropagation()">
+            <div class="dropdown-title">Seleccionar Imagen</div>
+            <div class="image-options">
+                <div class="image-option" onclick="selectFromGallery()">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Galería
+                </div>
+                <div class="image-option" onclick="takePhoto()">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Cámara
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dropdown" id="emojiDropdown" onclick="closeDropdown(event)">
+        <div class="dropdown-content" onclick="event.stopPropagation()">
+            <div class="dropdown-title">Seleccionar Emoji</div>
+            <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+    </div>
+
+    <div class="dropdown" id="colorDropdown" onclick="closeDropdown(event)">
+        <div class="dropdown-content" onclick="event.stopPropagation()">
+            <div class="dropdown-title">Color de Fondo</div>
+            <div class="color-grid" id="colorGrid"></div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dropdown for Delete -->
+    <div class="dropdown confirm-dropdown" id="deleteConfirmDropdown" onclick="closeDropdown(event)">
+        <div class="dropdown-content" onclick="event.stopPropagation()">
+            <div class="dropdown-title">¿Estás seguro?</div>
+            <p style="color: white; margin-bottom: 20px;">Esta acción eliminará el perfil permanentemente.</p>
+            <div class="action-buttons">
+                <button class="action-btn btn-secondary" onclick="closeDropdown(event)">
+                    Cancelar
+                </button>
+                <button class="action-btn btn-delete" onclick="deleteProfileConfirmed()">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+    <input type="file" id="cameraInput" accept="image/*" capture="camera" style="display: none;" onchange="handleImageUpload(event)">
+
+
+    <script>
+        let profiles = JSON.parse(localStorage.getItem('iptv_profiles') || '[]');
+        let currentProfile = null; // Stores the index of the profile being edited, or null for new profile
+        let isEditMode = false;
+        let currentImage = null; // Stores Data URL or external URL for image
+        let currentEmoji = null; // Stores emoji character
+        let currentColor = '#f0f0f0'; // Stores hex color for emoji background
+
+        const emojis = [
+            '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃',
+            '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜',
+            '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟',
+            '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
+            '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗',
+            '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧',
+            '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧',
+            '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻',
+            '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽',
+            '🙀', '😿', '😾', '👶', '👧', '🧒', '👦', '👩', '🧑', '👨', '👵', '🧓',
+            '👴', '👲', '👳', '👮', '👷', '💂', '🕵️', '👩‍⚕️', '👨‍⚕️', '👩‍🌾', '👨‍🌾', '👩‍🍳'
+        ];
+
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+            '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+            '#F8C471', '#82E0AA', '#F1948A', '#85C1E9', '#D2B4DE',
+            '#AED6F1', '#A3E4D7', '#D5DBDB', '#FADBD8', '#D6EAF8'
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a simple message box (replacement for alert/confirm).
+         * @param {string} message The message to display.
+         * @param {string} type 'success', 'error' or 'info' for styling.
+         */
+        function showMessageBox(message, type = 'info') {
+            const messageBox = document.createElement('div');
+            messageBox.className = `message-box ${type}`;
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+
+            // Animate in
+            setTimeout(() => messageBox.classList.add('show'), 10);
+
+            // Animate out and remove
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+                messageBox.addEventListener('transitionend', () => messageBox.remove());
+            }, 3000);
+        }
+
+        // Override window.confirm for a custom confirmation (for demonstration only)
+        window.confirm = (message) => {
+            return window.prompt(message + "\nEscribe 'sí' para confirmar.") === 'sí';
+        };
+
+        // --- Profile Management Functions ---
+
+        /**
+         * Loads and renders profiles from localStorage.
+         */
+        function loadProfiles() {
+            const grid = document.getElementById('profilesGrid');
+            const addButton = grid.querySelector('.add-profile');
+            
+            // Clear existing profiles (excluding the add button)
+            const existingProfiles = grid.querySelectorAll('.profile-item:not(.add-profile)');
+            existingProfiles.forEach(profile => profile.remove());
+            
+            // Add profiles
+            profiles.forEach((profile, index) => {
+                const profileElement = createProfileElement(profile, index);
+                grid.insertBefore(profileElement, addButton);
+            });
+        }
+
+        /**
+         * Creates a DOM element for a single profile.
+         * @param {object} profile The profile data.
+         * @param {number} index The index of the profile in the array.
+         * @returns {HTMLElement} The created profile DOM element.
+         */
+        function createProfileElement(profile, index) {
+            const div = document.createElement('div');
+            div.className = `profile-item ${isEditMode ? 'edit-mode' : ''}`;
+            div.onclick = () => isEditMode ? editProfile(index) : selectProfile(index);
+            
+            let avatarContent;
+            let avatarBgStyle = '';
+
+            if (profile.image) {
+                avatarContent = `<img src="${profile.image}" alt="${profile.name}">`;
+            } else if (profile.emoji) {
+                avatarContent = `<div class="emoji">${profile.emoji}</div>`;
+                avatarBgStyle = `background-color: ${profile.color || '#f0f0f0'};`;
+            } else {
+                avatarContent = `<svg class="default-icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>`;
+                avatarBgStyle = `background-color: #f0f0f0;`;
+            }
+            
+            div.innerHTML = `
+                <div class="profile-avatar" style="${avatarBgStyle}">
+                    ${avatarContent}
+                    <div class="edit-overlay">
+                        <svg width="30" height="30" fill="white" viewBox="0 0 24 24">
+                            <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="profile-name">${profile.name}</div>
+            `;
+            
+            return div;
+        }
+
+        /**
+         * Handles selecting a profile (when not in edit mode).
+         * @param {number} index The index of the selected profile.
+         */
+        function selectProfile(index) {
+            if (!isEditMode) {
+                showMessageBox(`Perfil '${profiles[index].name}' seleccionado. Redirigiendo...`, 'info');
+                // Redirect to the content page
+                window.location.href = 'contenido.html';
+            }
+        }
+
+        /**
+         * Opens the modal to edit an existing profile.
+         * @param {number} index The index of the profile to edit.
+         */
+        function editProfile(index) {
+            currentProfile = index;
+            const profile = profiles[index];
+            
+            document.getElementById('nameInput').value = profile.name;
+            document.getElementById('previewName').textContent = profile.name;
+            
+            currentImage = profile.image || null;
+            currentEmoji = profile.emoji || null;
+            currentColor = profile.color || '#f0f0f0';
+            
+            updatePreview();
+            openModal();
+            // Show delete button when editing
+            document.getElementById('deleteProfileBtn').style.display = 'flex';
+        }
+
+        /**
+         * Toggles the edit mode for profiles on the main screen.
+         */
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const container = document.querySelector('.container');
+            const editBtn = document.getElementById('editBtn');
+            
+            if (isEditMode) {
+                container.classList.add('edit-mode-active');
+                editBtn.style.background = '#ff4757';
+                editBtn.style.color = 'white';
+            } else {
+                container.classList.remove('edit-mode-active');
+                editBtn.style.background = 'rgba(255,255,255,0.9)';
+                editBtn.style.color = '#333';
+            }
+            loadProfiles(); // Re-render profiles to apply/remove edit-mode class
+        }
+
+        // --- Modal Functions ---
+
+        /**
+         * Opens the full-screen profile creation/edit modal.
+         */
+        function openModal() {
+            if (currentProfile === null) {
+                // Reset for new profile creation
+                document.getElementById('nameInput').value = '';
+                document.getElementById('previewName').textContent = 'Nuevo Perfil';
+                currentImage = null;
+                currentEmoji = null;
+                currentColor = '#f0f0f0';
+                updatePreview();
+                // Hide delete button for new profile
+                document.getElementById('deleteProfileBtn').style.display = 'none';
+            }
+            
+            document.getElementById('modalOverlay').classList.add('active');
+            document.getElementById('modal').classList.add('active');
+        }
+
+        /**
+         * Closes the full-screen profile creation/edit modal.
+         * @param {Event} [event] The click event (optional, used for overlay click).
+         */
+        function closeModal(event) {
+            // Prevent closing if click is inside the modal content itself
+            if (event && event.target !== event.currentTarget && event.type === 'click') return;
+            
+            document.getElementById('modalOverlay').classList.remove('active');
+            document.getElementById('modal').classList.remove('active');
+            
+            // Reset currentProfile after animation to avoid flicker on next open
+            setTimeout(() => {
+                currentProfile = null;
+                currentImage = null;
+                currentEmoji = null;
+                currentColor = '#f0f0f0';
+            }, 300); // Match CSS transition duration
+        }
+
+        /**
+         * Updates the name displayed in the profile preview within the modal.
+         */
+        function updatePreviewName() {
+            const name = document.getElementById('nameInput').value || 'Nuevo Perfil';
+            document.getElementById('previewName').textContent = name;
+        }
+
+        /**
+         * Updates the avatar image/emoji and background color in the modal preview.
+         */
+        function updatePreview() {
+            const preview = document.getElementById('profilePreview');
+            const colorBtn = document.getElementById('colorBtn');
+            
+            if (currentImage) {
+                preview.innerHTML = `<img src="${currentImage}" alt="Preview">`;
+                preview.style.backgroundColor = '#f0f0f0'; // Default background for images
+                colorBtn.style.display = 'none';
+            } else if (currentEmoji) {
+                preview.innerHTML = `<div class="emoji">${currentEmoji}</div>`;
+                preview.style.backgroundColor = currentColor;
+                colorBtn.style.display = 'flex';
+            } else {
+                preview.innerHTML = `<svg class="default-icon" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>`;
+                preview.style.backgroundColor = '#f0f0f0';
+                colorBtn.style.display = 'none';
+            }
+        }
+
+        // --- Dropdown Functions (Image Options, Emoji Picker, Color Picker) ---
+
+        /**
+         * Opens the image source selection dropdown.
+         */
+        function openImageOptions() {
+            document.getElementById('imageDropdown').classList.add('active');
+        }
+
+        /**
+         * Opens the emoji picker dropdown and populates the grid.
+         */
+        function openEmojiPicker() {
+            populateEmojiGrid();
+            document.getElementById('emojiDropdown').classList.add('active');
+        }
+
+        /**
+         * Opens the color picker dropdown and populates the grid.
+         */
+        function openColorPicker() {
+            populateColorGrid();
+            document.getElementById('colorDropdown').classList.add('active');
+        }
+
+        /**
+         * Closes all active dropdowns.
+         * @param {Event} [event] The click event (optional, used for overlay click).
+         */
+        function closeDropdown(event) {
+            // Prevent closing if click is inside the dropdown content itself
+            if (event && event.target !== event.currentTarget && event.type === 'click') return;
+            
+            document.querySelectorAll('.dropdown').forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
+
+        /**
+         * Populates the emoji grid in the emoji picker dropdown.
+         */
+        function populateEmojiGrid() {
+            const grid = document.getElementById('emojiGrid');
+            grid.innerHTML = '';
+            
+            emojis.forEach(emoji => {
+                const item = document.createElement('div');
+                item.className = 'emoji-item';
+                item.textContent = emoji;
+                item.onclick = () => selectEmoji(emoji);
+                grid.appendChild(item);
+            });
+        }
+
+        /**
+         * Populates the color grid in the color picker dropdown.
+         */
+        function populateColorGrid() {
+            const grid = document.getElementById('colorGrid');
+            grid.innerHTML = '';
+            
+            colors.forEach(color => {
+                const item = document.createElement('div');
+                item.className = 'color-item';
+                item.style.backgroundColor = color;
+                item.onclick = () => selectColor(color);
+                grid.appendChild(item);
+            });
+        }
+
+        /**
+         * Selects an emoji for the profile avatar.
+         * @param {string} emoji The selected emoji character.
+         */
+        function selectEmoji(emoji) {
+            currentEmoji = emoji;
+            currentImage = null; // Clear image if emoji is selected
+            updatePreview();
+            closeDropdown();
+        }
+
+        /**
+         * Selects a background color for the emoji avatar.
+         * @param {string} color The selected hex color.
+         */
+        function selectColor(color) {
+            currentColor = color;
+            updatePreview();
+            closeDropdown();
+        }
+
+        /**
+         * Triggers the hidden file input for gallery selection.
+         */
+        function selectFromGallery() {
+            document.getElementById('fileInput').click();
+            closeDropdown();
+        }
+
+        /**
+         * Triggers the hidden camera input for taking a photo.
+         */
+        function takePhoto() {
+            // In a real environment, this would open the camera.
+            // Direct camera access might require specific permissions and HTTPS.
+            showMessageBox('La función de cámara puede no estar disponible en este entorno de demostración. Intenta cargar desde la galería.', 'info');
+            document.getElementById('cameraInput').click(); // Still attempt to open native camera
+            closeDropdown();
+        }
+
+        /**
+         * Handles the file selection from gallery or camera.
+         * @param {Event} event The change event from the file input.
+         */
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImage = e.target.result; // Store as Data URL
+                    currentEmoji = null; // Clear emoji if image is selected
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        /**
+         * Saves or updates a profile to localStorage.
+         */
+        function saveProfile() {
+            const name = document.getElementById('nameInput').value.trim();
+            
+            if (name.length < 2) {
+                showMessageBox('El nombre debe tener al menos 2 caracteres.', 'error');
+                return;
+            }
+            
+            const profile = {
+                name: name,
+                image: currentImage,
+                emoji: currentEmoji,
+                color: currentColor
+            };
+            
+            if (currentProfile !== null) {
+                // Edit existing profile
+                profiles[currentProfile] = profile;
+            } else {
+                // New profile
+                profiles.push(profile);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('iptv_profiles', JSON.stringify(profiles));
+            
+            // Update the view
+            loadProfiles();
+            closeModal();
+            
+            // Exit edit mode if it was active
+            if (isEditMode) {
+                toggleEditMode();
+            }
+            showMessageBox('Perfil guardado correctamente.', 'success');
+        }
+
+        /**
+         * Opens the confirmation dropdown for deleting a profile.
+         */
+        function confirmDeleteProfile() {
+            document.getElementById('deleteConfirmDropdown').classList.add('active');
+        }
+
+        /**
+         * Deletes a profile from localStorage and reloads the view after confirmation.
+         */
+        function deleteProfileConfirmed() {
+            if (currentProfile !== null) {
+                profiles.splice(currentProfile, 1);
+                localStorage.setItem('iptv_profiles', JSON.stringify(profiles));
+                loadProfiles();
+                showMessageBox('Perfil eliminado correctamente.', 'success');
+            }
+            closeDropdown(); // Close the confirmation dropdown
+            closeModal(); // Close the main edit modal
+            if (isEditMode) {
+                toggleEditMode(); // Exit edit mode if it was active
+            }
+        }
+
+        /**
+         * Navigates back to the previous page (index.html).
+         */
+        function goToPreviousPage() {
+            window.location.href = 'home.html'; // Assuming index.html is the previous page
+        }
+
+        // --- Event Listeners ---
+
+        // Toggle Edit Mode button
+        document.getElementById('editBtn').addEventListener('click', toggleEditMode);
+
+        // Close dropdowns with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDropdown();
+                closeModal();
+            }
+        });
+
+        // Prevent form submission with Enter key in name input
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveProfile();
+            }
+        });
+
+        // Real-time name preview and validation
+        document.getElementById('nameInput').addEventListener('input', function() {
+            updatePreviewName();
+            validateName();
+        });
+
+        /**
+         * Validates the profile name and enables/disables the save button.
+         */
+        function validateName() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+            const saveBtn = document.querySelector('.btn-success');
+            
+            if (name.length >= 2) {
+                saveBtn.style.opacity = '1';
+                saveBtn.style.pointerEvents = 'auto';
+            } else {
+                saveBtn.style.opacity = '0.5';
+                saveBtn.style.pointerEvents = 'none';
+            }
+        }
+
+        // Initial validation call on load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProfiles();
+            validateName(); // Set initial state of save button
+        });
+
+        // Context menu for profiles (right-click)
+        document.getElementById('profilesGrid').addEventListener('contextmenu', function(e) {
+            const profileItem = e.target.closest('.profile-item:not(.add-profile)');
+            if (profileItem && isEditMode) {
+                e.preventDefault(); // Prevent default browser context menu
+                const index = Array.from(profileItem.parentNode.children).indexOf(profileItem);
+                showProfileContextMenu(e, index);
+            }
+        });
+
+        // Function to show custom context menu (for edit/delete)
+        function showProfileContextMenu(event, index) {
+            // Remove existing context menu if any
+            const existingMenu = document.getElementById('profileContextMenu');
+            if (existingMenu) existingMenu.remove();
+
+            const contextMenu = document.createElement('div');
+            contextMenu.id = 'profileContextMenu';
+            contextMenu.style.position = 'absolute';
+            contextMenu.style.left = `${event.clientX}px`;
+            contextMenu.style.top = `${event.clientY}px`;
+            contextMenu.style.background = '#333';
+            contextMenu.style.borderRadius = '8px';
+            contextMenu.style.padding = '5px 0';
+            contextMenu.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            contextMenu.style.zIndex = '10000'; // High z-index
+
+            contextMenu.innerHTML = `
+                <button style="display: block; width: 100%; padding: 10px 15px; text-align: left; color: white; background: none; border: none; cursor: pointer;" onmouseover="this.style.backgroundColor='#555'" onmouseout="this.style.backgroundColor='none'" onclick="editProfile(${index}); document.getElementById('profileContextMenu').remove();">Editar</button>
+                <button style="display: block; width: 100%; padding: 10px 15px; text-align: left; color: #ff4757; background: none; border: none; cursor: pointer;" onmouseover="this.style.backgroundColor='#555'" onmouseout="this.style.backgroundColor='none'" onclick="deleteProfile(${index}); document.getElementById('profileContextMenu').remove();">Eliminar</button>
+            `;
+            document.body.appendChild(contextMenu);
+
+            // Close context menu when clicking anywhere else
+            const closeMenuOnOutsideClick = (e) => {
+                if (!contextMenu.contains(e.target)) {
+                    contextMenu.remove();
+                    document.removeEventListener('click', closeMenuOnOutsideClick);
+                }
+            };
+            // Add a slight delay to prevent immediate closing if click was on the profile item itself
+            setTimeout(() => {
+                document.addEventListener('click', closeMenuOnOutsideClick);
+            }, 100);
+        }
+    </script>
+</body>
+</html>

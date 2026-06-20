@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Biografía y portafolio de Alexander Alvarez, autor hondureño, Youtuber, desarrollador de videojuegos y creador de la saga Jack y el Legado del Mentor.">
+    <title>Acerca de Alexander Alvarez | Autor y Desarrollador</title>
+    <style>
+        /* Variables de CSS para un tema oscuro moderno y profesional */
+        :root {
+            --bg-main: #0f172a; /* Slate 900 */
+            --bg-card: #1e293b; /* Slate 800 */
+            --bg-card-hover: #334155; /* Slate 700 */
+            --text-main: #f8fafc; /* Slate 50 */
+            --text-muted: #94a3b8; /* Slate 400 */
+            --accent-color: #6366f1; /* Indigo 500 */
+            --accent-hover: #818cf8; /* Indigo 400 */
+            --border-color: #334155;
+            --nav-height: 70px;
+        }
+
+        /* Estilos base y reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+        }
+
+        /* Tipografía */
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-main);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 60px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* Barra de navegación */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background-color: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .nav-brand img {
+            height: 40px;
+            width: auto;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-main);
+            font-weight: 500;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after, .nav-links a.active::after {
+            width: 100%;
+        }
+
+        /* Contenedor principal */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: calc(var(--nav-height) + 3rem) 2rem 4rem 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .tagline {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Secciones */
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: calc(var(--nav-height) + 2rem);
+        }
+
+        /* Tarjetas de Medios */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .media-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .media-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-color);
+        }
+
+        .media-card img {
+            height: 64px;
+            width: 64px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* Contenedor especial para iconos SVG */
+        .media-icon-wrapper {
+            height: 64px;
+            width: 64px;
+            flex-shrink: 0;
+            border-radius: 8px;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .media-card-content h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .media-card-content p {
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+            line-height: 1.4;
+        }
+
+        /* Cuadrícula de Libros */
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        .work-card {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .work-card img {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            margin-bottom: 1rem;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .work-card:hover img {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+        }
+        
+        .work-card p {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            line-height: 1.3;
+        }
+
+        /* Videojuegos */
+        .game-item {
+            background-color: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .game-item:hover {
+            border-left-color: var(--accent-color);
+        }
+
+        .game-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: var(--accent-hover);
+            flex-wrap: wrap;
+        }
+
+        .game-meta span {
+            background-color: rgba(99, 102, 241, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+        }
+
+        /* Citas */
+        .quote-box {
+            background-color: var(--bg-card);
+            border-left: 4px solid var(--accent-color);
+            padding: 1.5rem 2rem;
+            border-radius: 0 8px 8px 0;
+            margin: 2rem 0;
+            font-style: italic;
+        }
+
+        /* Enlaces de texto */
+        .learn-more-container {
+            text-align: center;
+            margin-top: 2.5rem;
+        }
+
+        .text-link {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            .hero h1 { font-size: 2.5rem; }
+            .works-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="ALEX GAMES.png" alt="CrafTlexGames Logo" onclick="window.location.href='index.html'">
+        </div>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">☰</button>
+        <div class="nav-links" id="nav-links">
+            <a href="index.html">Inicio</a>
+            <a href="#biografia">Sobre Mí</a>
+            <a href="https://www.thejacksaga.site" target="_blank">Literatura</a>
+            <a href="https://www.craftlexgames.com" target="_blank">Juegos</a>
+            <a href="https://www.linkedin.com/in/alexander-alvarez-b697ab331/" target="_blank">Contacto</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="hero">
+            <h1>Alexander Alvarez</h1>
+            <p class="tagline">Autor | Youtuber | Desarrollador | Innovador</p>
+        </header>
+
+        <section id="biografia">
+            <h2>Raíces y Pasiones</h2>
+            <p>Alexander Alvarez (6 de noviembre de 2008) es un autor y YouTuber hondureño. Es conocido por su serie de libros de fantasía "Jack y el Legado del Mentor" (anteriormente publicada como Las Aventuras de Jack y sus Amigos) y por su canal de YouTube, AleXCrafter, donde crea contenido sobre videojuegos.</p>
+            
+            <p>Su interés por la tecnología comenzó en su infancia, explorando el desarrollo de pequeños juegos con herramientas como Unity y Roblox Studio. Sus pasiones incluyen la literatura, los videojuegos, el ajedrez y el piano, un conjunto diverso que nutre su pensamiento lógico y su expresión artística.</p>
+            
+            <p>Comenzó su carrera como escritor a los 14 años. La idea para su primera historia surgió en enero de 2023, durante un viaje a Estados Unidos. Lo que inició como una prueba de su imaginación se convirtió rápidamente en un proyecto sólido. Publicó su primer libro ese mismo año y, para marzo de 2025, ya contaba con la pentalogía completa impresa en Amazon, evidenciando una notable evolución y dedicación.</p>
+
+            <div class="quote-box">
+                <p>"Alexander es un joven con una mente brillante y una imaginación sin límites, que ha logrado pasar de la excelencia académica a las letras de Amazon."</p>
+                <footer style="text-align: right; margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-muted);">— STVE Telebásica</footer>
+            </div>
+        </section>
+
+        <!-- LITERATURA -->
+        <section id="literatura">
+            <h2>La Saga de Jack: Un Universo Literario</h2>
+            <p>La piedra angular de su carrera es la saga de fantasía y aventura <strong>"Jack y el Legado del Mentor"</strong>. Esta serie sumerge a los lectores en las peripecias de Jack, un joven valiente que junto a sus compañeros Wu y Lila enfrenta peligros inminentes frente a misterios ancestrales. Cada entrega de la serie se teje con las demás, creando una trama interconectada que enriquece el universo narrativo.</p>
+            
+            <p>Un pilar fundamental en su proceso es la integración de la <strong>Inteligencia Artificial</strong> como herramienta creativa, trabajando en sinergia con la imaginación humana para materializar ideas complejas. Además, ha colaborado con artistas como <strong>Fares Hernandez</strong> para dar vida a algunas de las ilustraciones en las portadas de la saga.</p>
+
+            <div class="quote-box">
+                <p>"De la inocencia nace la ilusión, de la tragedia, puede renacer la esperanza, pero solo una generación podrá reescribir el legado"</p>
+            </div>
+
+            <div class="media-grid">
+                <div class="media-card">
+                    <img src="logo_amazon.png" alt="Logo Amazon" loading="lazy">
+                    <div class="media-card-content">
+                        <h4>Libros en Amazon</h4>
+                        <p>Descubre y adquiere la saga completa.</p>
+                        <a href="https://amazon.com/author/alexander_alvarez" target="_blank">Visitar perfil →</a>
+                    </div>
+                </div>
+                <div class="media-card">
+                    <div class="media-icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </div>
+                    <div class="media-card-content">
+                        <h4>Tienda Oficial</h4>
+                        <p>Adquiere sus libros directamente aquí.</p>
+                        <a href="https://www.thejacksaga.site/store" target="_blank">thejacksaga.site/store →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- OBRAS DESTACADAS -->
+        <section id="obras">
+            <h2>Obras Destacadas</h2>
+            <p>Esta pentalogía, forjada durante dos años, es una epopeya que explora tragedias y errores generacionales, pero sobre todo exalta la importancia del trabajo en equipo, la amistad, la redención y la esperanza.</p>
+            
+            <div class="works-grid">
+                <div class="work-card">
+                    <img src="1731014045.png" alt="Portada El Despertar del Dragón" loading="lazy">
+                    <h5>El Despertar del Dragón</h5>
+                    <p>El inicio de la épica aventura.</p>
+                </div>
+                <div class="work-card">
+                    <img src="1731014870.png" alt="Portada El Artefacto Legendario" loading="lazy">
+                    <h5>El Artefacto Legendario</h5>
+                    <p>Un objeto ancestral desata nuevos desafíos.</p>
+                </div>
+                <div class="work-card">
+                    <img src="1731015157.png" alt="Portada El Misterio de la Máscara" loading="lazy">
+                    <h5>El Misterio de la Máscara</h5>
+                    <p>Secretos ocultos y peligros inesperados.</p>
+                </div>
+                <div class="work-card">
+                    <img src="1731015440.png" alt="Portada Entre Secretos del Tiempo" loading="lazy">
+                    <h5>Entre Secretos del Tiempo</h5>
+                    <p>Viajes a través de la historia y revelaciones.</p>
+                </div>
+                <div class="work-card">
+                    <img src="1731015462.png" alt="Portada El Despertar del Armagedón" loading="lazy">
+                    <h5>El Despertar del Armagedón</h5>
+                    <p>El clímax de la saga, donde todo está en juego.</p>
+                </div>
+            </div>
+            
+            <div class="learn-more-container">
+                <a href="https://www.thejacksaga.site" target="_blank" class="text-link">Conocer más sobre la saga de Jack →</a>
+            </div>
+        </section>
+
+        <!-- YOUTUBE -->
+        <section id="youtube">
+            <h2>AleXCrafter: Comunidad Gamer</h2>
+            <p>Bajo el alias de AleXCrafter, gestiona el vibrante canal de YouTube <strong>@AleXCrafterOficial</strong>. Con una sólida base de más de 4,800 suscriptores, el canal se ha convertido en un punto de encuentro para entusiastas de los videojuegos, enfocándose especialmente en el universo de Minecraft, donde abarca desde tutoriales y gameplays hasta exhaustivas reviews de actualizaciones.</p>
+            
+            <p>La conexión entre su faceta de escritor y su presencia en YouTube es notable; Alexander ha documentado en video momentos clave de su carrera. En una importante firma de libros en Honduras, el reconocido YouTuber internacional <strong>BobicraftMC</strong> le brindó un reconocimiento público a su creciente canal.</p>
+            
+            <div class="media-grid">
+                <div class="media-card">
+                    <img src="channel_profile.jpg" alt="Perfil AleXCrafter" loading="lazy">
+                    <div class="media-card-content">
+                        <h4>Canal AleXCrafter</h4>
+                        <p>Reviews y desarrollo de contenido.</p>
+                        <a href="https://www.youtube.com/@AleXCrafterOficial" target="_blank">Ver canal →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIDEOJUEGOS -->
+        <section id="videojuegos">
+            <h2>Desarrollo de Videojuegos</h2>
+            <p>Llevando su pasión por la tecnología un paso más allá, Alexander también ha incursionado en el desarrollo de sus propios títulos, apoyándose nuevamente en herramientas de IA para materializar sus ideas con mayor eficiencia.</p>
+            
+            <div class="game-item">
+                <h3>Balloon Burst</h3>
+                <div class="game-meta"><span>Inicio: Mayo 2024</span><span>Estilo: Pixelart / 2.5D</span></div>
+                <p>Un juego web con mecánicas simples pero adictivas de atrapar globos. Cuenta con un <strong>camino de islas</strong> de diferentes ambientaciones y minijuegos. Es un título que demuestra cómo la simplicidad bien ejecutada puede llevar a una experiencia de juego altamente disfrutable.</p>
+            </div>
+            <div class="game-item">
+                <h3>The Hider</h3>
+                <div class="game-meta"><span>Inicio: Febrero 2025</span><span>Estilo: Thriller 3D</span></div>
+                <p>Un ambicioso juego web de misterio que destaca por su rica ambientación e inmersión sonora. Presenta la historia de un detective que busca resolver un caso, solo para descubrir que la verdad está profundamente ligada a un pasado que no recuerda.</p>
+            </div>
+        </section>
+
+        <!-- IA -->
+        <section id="ia">
+            <h2>Perspectiva sobre la Inteligencia Artificial</h2>
+            <p>Alexander posee una visión clara y pragmática sobre el uso de la Inteligencia Artificial. Para él, es una herramienta poderosa que potencia las ideas y agiliza el trabajo, sin reemplazar jamás la esencia humana.</p>
+            
+            <div class="quote-box">
+                <p>"Yo considero la Inteligencia Artificial como una herramienta, una herramienta capaz de potenciar nuestras ideas si se sabe usar. Se pueden lograr muchas cosas, agilizar procesos, experimentar más rápido... La IA no piensa por sí misma; simplemente sigue instrucciones. Incluso las IA 'agénticas' siguen dependiendo de una idea inicial, de una guía humana."</p>
+            </div>
+            
+            <p>En su experiencia, la IA le ha ayudado a "romper la barrera" de la página en blanco, convirtiendo pensamientos abstractos en proyectos concretos. Alexander la compara con una calculadora para las matemáticas: no hace el trabajo por ti si no entiendes los principios, pero te permite ser mucho más eficiente.</p>
+            
+            <div class="quote-box">
+                <p>"No te va a dar una historia perfecta ni un juego listo para lanzar. Pero puede ayudarte a llegar ahí más rápido, de forma más clara. No necesariamente más fácil, pero sí más eficiente."</p>
+            </div>
+
+            <div class="media-grid">
+                <div class="media-card">
+                    <img src="medium_logo.png" alt="Medium" loading="lazy">
+                    <div class="media-card-content">
+                        <h4>Reflexión en Medium</h4>
+                        <p>Análisis completo sobre la IA como compañera creativa.</p>
+                        <a href="https://medium.com/@alexandersam1106/la-inteligencia-artificial-como-herramienta-no-como-reemplazo-mi-experiencia-personal-6eec09bd7a6d" target="_blank">Leer blog →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- IMPACTO Y VISIBILIDAD -->
+        <section id="reconocimiento">
+            <h2>Impacto y Visibilidad Pública</h2>
+            <p>La temprana carrera de Alexander Alvarez ha captado la atención por su innovador trabajo. Su recorrido ha estado marcado por un significativo reconocimiento en Honduras, impulsado por su visibilidad en medios de comunicación y en importantes círculos académicos. En este sentido, ha sido entrevistado por la dirección ejecutiva de su centro educativo, destacando su labor como autor ante la comunidad estudiantil.</p>
+            
+            <div class="media-grid">
+                <div class="media-card">
+                    <img src="stve_telebasica.png" alt="STVE" loading="lazy">
+                    <div class="media-card-content">
+                        <h4>STVE Telebásica</h4>
+                        <p>Destacado en el programa educativo "La Clave del Éxito" de la Secretaría de Educación.</p>
+                    </div>
+                </div>
+                <div class="media-card">
+                    <img src="unah_logo.png" alt="UNAH" loading="lazy">
+                    <div class="media-card-content">
+                        <h4>Presentación UNAH</h4>
+                        <p>Recibido en el marco del Día del Libro por la Facultad de Letras y la Biblioteca Central de la UNAH.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="main-footer">
+        <p style="text-align: center; padding: 2rem; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9rem;">
+            &copy; 2026 Alexander Alvarez. Todos los derechos reservados.
+        </p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const navLinks = document.getElementById('nav-links');
+            mobileBtn.addEventListener('click', () => navLinks.classList.toggle('active'));
+        });
+    </script>
+</body>
+</html>

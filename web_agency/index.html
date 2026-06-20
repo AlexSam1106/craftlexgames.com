@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniLinky Web Studio - Diseño Web con Personalidad</title>
+    
+    <!-- Carga de Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Configuración de Tailwind y Fuente (Inter) --><script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand': {
+                            '50': '#f0f7ff',
+                            '100': '#e0eeff',
+                            '200': '#c8e0ff',
+                            '300': '#a3cfff',
+                            '400': '#7abfff',
+                            '500': '#52a9ff',
+                            '600': '#2e8fff',
+                            '700': '#1b7aff',
+                            '800': '#1764de',
+                            '900': '#1c54b3',
+                            '950': '#13336f',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Estilos personalizados adicionales --><style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para la imagen de fondo del héroe */
+        .hero-background-image {
+            background-image: url('header_image.png');
+            background-size: cover;
+            background-position: center;
+        }
+        /* Eliminar el gradiente original si ya no es necesario */
+        .hero-gradient { 
+            background: none; 
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+    <!-- Contenedor Principal --><div class="flex flex-col min-h-screen">
+
+        <!-- ===== Encabezado y Navegación ===== --><header class="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-lg shadow-sm">
+            <nav class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-20">
+                    
+                    <!-- Logo / Nombre del Estudio (Ahora con imagen) --><a href="#" class="flex items-center">
+                        <img src="omnilinky_logo.png" alt="OmniLinky Web Studio Logo" class="h-10 w-auto filter saturate-50">
+                    </a>
+
+                    <!-- Navegación de Escritorio --><div class="hidden md:flex items-center space-x-8">
+                        <a href="#servicios" class="font-medium text-gray-600 hover:text-brand-800 transition-colors">Servicios</a>
+                        <a href="#portafolio" class="font-medium text-gray-600 hover:text-brand-800 transition-colors">Portafolio</a>
+                        <a href="#nosotros" class="font-medium text-gray-600 hover:text-brand-800 transition-colors">Nosotros</a>
+                        <a href="#fundador" class="font-medium text-gray-600 hover:text-brand-800 transition-colors">Fundador</a>
+                        <a href="#contacto" class="font-medium text-gray-600 hover:text-brand-800 transition-colors">Contacto</a>
+                    </div>
+
+                    <!-- CTA de Escritorio --><div class="hidden md:block">
+                        <a href="#contacto" class="inline-block px-5 py-3 bg-brand-800 text-white font-semibold rounded-lg shadow-md hover:bg-brand-900 transition-all transform hover:-translate-y-0.5">
+                            Empezar un Proyecto
+                        </a>
+                    </div>
+
+                    <!-- Botón de Menú Móvil --><div class="md:hidden">
+                        <button id="mobile-menu-button" class="text-gray-900 hover:text-brand-800">
+                            <span class="sr-only">Abrir menú</span>
+                            <!-- Icono de Hamburguesa --><svg id="menu-icon-open" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                            <!-- Icono de Cerrar (X) --><svg id="menu-icon-close" class="w-7 h-7 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Menú Móvil (Oculto por defecto) --><div id="mobile-menu" class="hidden md:hidden pb-6">
+                    <a href="#servicios" class="block py-3 px-4 text-lg font-medium text-gray-700 rounded-lg hover:bg-brand-50 hover:text-brand-800">Servicios</a>
+                    <a href="#portafolio" class="block py-3 px-4 text-lg font-medium text-gray-700 rounded-lg hover:bg-brand-50 hover:text-brand-800">Portafolio</a>
+                    <a href="#nosotros" class="block py-3 px-4 text-lg font-medium text-gray-700 rounded-lg hover:bg-brand-50 hover:text-brand-800">Nosotros</a>
+                    <a href="#fundador" class="block py-3 px-4 text-lg font-medium text-gray-700 rounded-lg hover:bg-brand-50 hover:text-brand-800">Fundador</a>
+                    <a href="#contacto" class="block py-3 px-4 text-lg font-medium text-gray-700 rounded-lg hover:bg-brand-50 hover:text-brand-800">Contacto</a>
+                    <a href="#contacto" class="block w-full text-center mt-4 px-5 py-4 bg-brand-800 text-white font-semibold rounded-lg shadow-md hover:bg-brand-900 transition-all">
+                        Empezar un Proyecto
+                    </a>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Contenido Principal --><main class="flex-grow">
+
+            <!-- ===== Sección de Héroe (con imagen de fondo y overlay) ===== --><section class="relative overflow-hidden hero-background-image pt-24 pb-28 sm:pt-32 sm:pb-36 flex items-center justify-center min-h-[60vh]">
+                <!-- Overlay semitransparente --><div class="absolute inset-0 bg-brand-950 opacity-60"></div>
+                
+                <div class="container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                    <span class="inline-flex items-center rounded-full bg-brand-100 px-4 py-1.5 text-sm font-semibold text-brand-800 ring-1 ring-inset ring-brand-200">
+                        Creadores · Emprendedores · Marcas Personales
+                    </span>
+                    <h1 class="mt-8 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+                        Tu idea merece una presencia digital <span class="text-brand-400">viva, profesional y única.</span>
+                    </h1>
+                    <p class="mt-8 text-xl text-gray-200">
+                        Creamos experiencias digitales que combinan diseño moderno, identidad visual y herramientas inteligentes.
+                    </p>
+                    <div class="mt-12 flex items-center justify-center gap-x-6">
+                        <a href="#contacto" class="inline-block px-7 py-4 bg-brand-800 text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-brand-700 transition-all transform hover:-translate-y-1">
+                            Hablemos de tu Proyecto
+                        </a>
+                        <a href="#portafolio" class="text-lg font-semibold leading-6 text-white hover:text-brand-400 transition-colors">
+                            Ver Proyectos <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Sección de Diferenciadores (Qué nos hace diferentes) ===== --><section class="py-20 sm:py-28 bg-white">
+                <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-2xl mx-auto lg:max-w-none">
+                        <div class="text-center">
+                            <h2 class="text-base font-semibold leading-7 text-brand-700">¿Por qué OmniLinky?</h2>
+                            <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                                Presencias digitales con personalidad.
+                            </p>
+                        </div>
+                        <div class="mt-16 grid grid-cols-1 gap-x-8 gap-y-12 lg:grid-cols-3">
+                            
+                            <!-- Característica 1 --><div class="flex flex-col items-center text-center sm:items-start sm:text-left">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-14 w-14 rounded-xl bg-brand-100 text-brand-800">
+                                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125l-1.687-1.688M18.75 11.25l-1.688-1.687" /></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <h3 class="text-xl font-semibold leading-8 text-gray-900">Identidad y Estilo Único</h3>
+                                    <p class="mt-2 text-base text-gray-700">
+                                        Creamos sitios web que reflejan tu identidad, no plantillas genéricas. Ideal para creadores, autores y proyectos creativos.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Característica 2 --><div class="flex flex-col items-center text-center sm:items-start sm:text-left">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-14 w-14 rounded-xl bg-brand-100 text-brand-800">
+                                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13L2.25 22.5l1.117-4.07a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18.75 11.25H12.75" /></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <h3 class="text-xl font-semibold leading-8 text-gray-900">Tecnología Inteligente</h3>
+                                    <p class="mt-2 text-base text-gray-700">
+                                        Integramos IA y automatizaciones simples (chats, formularios inteligentes) para optimizar tu presencia sin complicaciones.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Característica 3 --><div class="flex flex-col items-center text-center sm:items-start sm:text-left">
+                                <div class="flex-shrink-0">
+                                    <div class="flex items-center justify-center h-14 w-14 rounded-xl bg-brand-100 text-brand-800">
+                                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" /></svg>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <h3 class="text-xl font-semibold leading-8 text-gray-900">Experiencia Cercana</h3>
+                                    <p class="mt-2 text-base text-gray-700">
+                                        Ofrecemos un trato humano y directo. Somos tu equipo, no una agencia corporativa fría. Perfecto para gente que quiere verse pro.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Sección de Servicios ===== --><section id="servicios" class="py-20 sm:py-28 bg-brand-50/70">
+                <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-2xl mx-auto lg:text-center">
+                        <h2 class="text-base font-semibold leading-7 text-brand-700">Servicios</h2>
+                        <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                            Soluciones para destacar tu proyecto
+                        </p>
+                        <p class="mt-6 text-lg leading-8 text-gray-700">
+                            Desde el diseño inicial hasta la integración inteligente, cubrimos lo que necesitas para una presencia digital auténtica.
+                        </p>
+                    </div>
+                    <div class="mt-16 max-w-2xl mx-auto lg:max-w-none">
+                        <dl class="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-3">
+                            
+                            <!-- Servicio 1: Diseño Web Moderno --><div class="relative p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
+                                <dt class="text-lg font-semibold leading-7 text-gray-900">
+                                    <div class="absolute left-8 top-8 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
+                                        <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>
+                                    </div>
+                                    <div class="ml-20">Diseño Web Moderno</div>
+                                </dt>
+                                <dd class="mt-4 text-base leading-7 text-gray-700 ml-20">
+                                    Sitios web minimalistas, portafolios y páginas para negocios pequeños. Enfocados en la narrativa visual y la experiencia de usuario.
+                                </dd>
+                            </div>
+                            
+                            <!-- Servicio 2: Branding Básico (Icono actualizado) --><div class="relative p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
+                                <dt class="text-lg font-semibold leading-7 text-gray-900">
+                                    <div class="absolute left-8 top-8 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
+                                        <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13L2.25 22.5l1.117-4.07a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18.75 11.25H12.75" /></svg>
+                                    </div>
+                                    <div class="ml-20">Branding Básico</div>
+                                </dt>
+                                <dd class="mt-4 text-base leading-7 text-gray-700 ml-20">
+                                    Creamos tu identidad visual: logo simple, paleta de colores y una guía de estilo ligera para mantener la consistencia de tu marca.
+                                </dd>
+                            </div>
+
+                            <!-- Servicio 3: Integración IA y Landing Pages (Icono actualizado) --><div class="relative p-8 bg-white rounded-2xl shadow-lg border border-gray-100">
+                                <dt class="text-lg font-semibold leading-7 text-gray-900">
+                                    <div class="absolute left-8 top-8 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-brand-800">
+                                        <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.591 11.391.855 7.108 17.5 15l-16.645-4.283L15.591 11.39zM15.591 11.391L21.75 8.25l-6.159 3.141z" /></svg>
+                                    </div>
+                                    <div class="ml-20">Integración IA y Landing Pages</div>
+                                </dt>
+                                <dd class="mt-4 text-base leading-7 text-gray-700 ml-20">
+                                    Desde Landing Pages para startups hasta chats básicos con IA y formularios inteligentes para capturar leads de forma eficiente.
+                                </dd>
+                            </div>
+
+                        </dl>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Sección de Portafolio ===== --><section id="portafolio" class="py-20 sm:py-28 bg-white">
+                <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-2xl mx-auto lg:text-center">
+                        <h2 class="text-base font-semibold leading-7 text-brand-700">Portafolio</h2>
+                        <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                            Proyectos que cuentan historias
+                        </p>
+                        <p class="mt-6 text-lg leading-8 text-gray-700">
+                            Diseñamos webs que generan confianza y destacan. Aquí algunos ejemplos de nuestro trabajo.
+                        </p>
+                    </div>
+                    
+                    <div class="mt-16 grid grid-cols-1 gap-y-10 gap-x-8 sm:grid-cols-2 lg:grid-cols-3">
+                        
+                        <!-- Proyecto 1 --><div class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+                            <img class="aspect-[4/3] w-full object-cover transition-all duration-300 group-hover:scale-105" src="https://placehold.co/600x450/e0eeff/13336f?text=Portafolio+Autor" alt="[Imagen de portafolio de un autor]" onerror="this.src='https://placehold.co/600x450'">
+                            <div class="p-6">
+                                <h3 class="text-xl font-semibold text-gray-900">Portafolio de Autor</h3>
+                                <p class="mt-2 text-base text-gray-700">Diseño Web · Branding</p>
+                            </div>
+                        </div>
+
+                        <!-- Proyecto 2 --><div class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+                            <img class="aspect-[4/3] w-full object-cover transition-all duration-300 group-hover:scale-105" src="https://placehold.co/600x450/c8e0ff/13336f?text=Landing+Startup" alt="[Imagen de landing page para startup]" onerror="this.src='https://placehold.co/600x450'">
+                            <div class="p-6">
+                                <h3 class="text-xl font-semibold text-gray-900">Landing Page Startup Tech</h3>
+                                <p class="mt-2 text-base text-gray-700">Landing Page · Integración IA</p>
+                            </div>
+                        </div>
+
+                        <!-- Proyecto 3 --><div class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-lg border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+                            <img class="aspect-[4/3] w-full object-cover transition-all duration-300 group-hover:scale-105" src="https://placehold.co/600x450/a3cfff/13336f?text=Web+Creativa" alt="[Imagen de web para estudio creativo]" onerror="this.src='https://placehold.co/600x450'">
+                            <div class="p-6">
+                                <h3 class="text-xl font-semibold text-gray-900">Estudio Creativo</h3>
+                                <p class="mt-2 text-base text-gray-700">Diseño Web</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Sección Sobre Nosotros ===== --><section id="nosotros" class="relative py-20 sm:py-28 bg-gray-900 text-white overflow-hidden">
+                <div class="absolute inset-0 opacity-10">
+                    <svg class="absolute inset-0 h-full w-full" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid-pattern" width="32" height="32" patternUnits="userSpaceOnUse" x="50%" y="100%" patternTransform="translate(0 -1)"><path d="M0 32V.5H32" fill="none" stroke="currentColor"></path></pattern></defs><rect width="100%" height="100%" fill="url(#grid-pattern)"></rect></svg>
+                </div>
+                <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <span class="text-base font-semibold leading-7 text-brand-400">Sobre el Studio</span>
+                            <h2 class="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                                Un estudio web para creadores y emprendedores.
+                            </h2>
+                            <p class="mt-6 text-lg leading-8 text-gray-300">
+                                En OmniLinky Web Studio creemos que cada proyecto tiene una historia. No hacemos sitios genéricos. Diseñamos experiencias digitales con identidad, emoción y claridad.
+                            </p>
+                            <p class="mt-6 text-lg leading-8 text-gray-300">
+                                Combinamos diseño moderno, narrativa visual y herramientas inteligentes para ayudarte a conectar con tu audiencia, mostrar tu trabajo y crecer tu presencia en línea.
+                            </p>
+                            <p class="mt-6 text-lg leading-8 text-gray-300">
+                                Si eres creador, emprendedor o estás comenzando un proyecto y quieres una web profesional sin complicaciones — aquí encontraste tu equipo.
+                            </p>
+                        </div>
+                        <div class="bg-brand-900/50 p-10 rounded-2xl shadow-xl backdrop-blur-sm border border-brand-700">
+                            <h3 class="text-2xl font-semibold text-white">Nuestra filosofía</h3>
+                            <p class="mt-4 text-brand-200">Creemos en un internet más auténtico. Donde tu presencia digital no solo se ve bien, sino que se *siente* bien.</p>
+                            
+                            <div class="mt-8 space-y-4">
+                                <div class="flex items-start">
+                                    <svg class="flex-shrink-0 w-6 h-6 text-brand-400 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                                    <span class="ml-3 text-lg text-gray-200">Diseño con personalidad</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <svg class="flex-shrink-0 w-6 h-6 text-brand-400 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                                    <span class="ml-3 text-lg text-gray-200">Tecnología que simplifica</span>
+                                </div>
+                                <div class="flex items-start">
+                                    <svg class="flex-shrink-0 w-6 h-6 text-brand-400 mt-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                                    <span class="ml-3 text-lg text-gray-200">Resultados que destacan</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Sección Fundador ===== --><section id="fundador" class="py-20 sm:py-28 bg-white">
+                <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                        <!-- Imagen del Fundador --><div class="order-1 lg:order-1">
+                            <img class="w-full h-auto rounded-2xl shadow-xl aspect-square object-cover" 
+                                 src="https://placehold.co/600x600/1764de/f0f7ff?text=Alexander+Alvarez" 
+                                 alt="Retrato de Alexander Alvarez, fundador de OmniLinky Web Studio"
+                                 onerror="this.src='https://placehold.co/600x600'">
+                        </div>
+                        
+                        <!-- Texto del Fundador --><div class="order-2 lg:order-2">
+                            <span class="text-base font-semibold leading-7 text-brand-700">Conoce al Fundador</span>
+                            <h2 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                                Alexander Alvarez
+                            </h2>
+                            <p class="mt-6 text-lg leading-8 text-gray-700">
+                                Alexander fundó OmniLinky Web Studio a los 17 años con una visión clara: combinar el diseño auténtico con las herramientas del futuro. Actualmente, es estudiante universitario de <strong>Ingeniería en Sistemas</strong>, lo que le brinda una base técnica sólida para cada proyecto.
+                            </p>
+                            <p class="mt-6 text-lg leading-8 text-gray-700">
+                                Su pasión no se detiene ahí. Con cursos en <strong>desarrollo de apps móviles, páginas web, fundamentos de marketing digital</strong> y <strong>competencias digitales para profesionales</strong>, Alexander tiene un entendimiento integral de lo que se necesita no solo para construir un sitio, sino para crear una presencia digital exitosa.
+                            </p>
+                            <p class="mt-6 text-lg leading-8 text-gray-700 italic text-brand-800 border-l-4 border-brand-200 pl-4">
+                                "Usamos la asistencia de las herramientas del futuro de hoy para potenciar tu visión humana, no para reemplazarla."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== Sección de Contacto (CTA y Formulario) ===== --><section id="contacto" class="py-20 sm:py-28 bg-brand-50/70">
+                <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                        <!-- Información y CTA --><div>
+                            <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                                ¿Listo para que tu idea destaque?
+                            </h2>
+                            <p class="mt-6 text-xl leading-8 text-gray-700">
+                                Hablemos de tu proyecto. Cuéntanos tu visión y descubramos cómo podemos construir juntos tu presencia digital.
+                            </p>
+                            <p class="mt-8 text-lg text-gray-700">
+                                Rellena el formulario o, si lo prefieres, escríbenos directamente a:
+                            </p>
+                            <a href="mailto:hola@omnilinky.com" class="mt-2 inline-block text-xl font-semibold text-brand-800 hover:text-brand-900 transition-colors">
+                                hola@omnilinky.studio
+                            </a>
+                        </div>
+
+                        <!-- Formulario de Contacto --><div class="bg-gray-50 p-8 sm:p-10 rounded-2xl shadow-lg border border-gray-100">
+                            <form action="#" method="POST" class="space-y-6">
+                                <div>
+                                    <label for="name" class="block text-sm font-semibold leading-6 text-gray-900">Tu Nombre</label>
+                                    <div class="mt-2.5">
+                                        <input type="text" name="name" id="name" autocomplete="name" class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-700 sm:text-sm sm:leading-6 transition-all">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-semibold leading-6 text-gray-900">Tu Email</label>
+                                    <div class="mt-2.5">
+                                        <input type="email" name="email" id="email" autocomplete="email" class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-700 sm:text-sm sm:leading-6 transition-all" placeholder="tu@email.com">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="message" class="block text-sm font-semibold leading-6 text-gray-900">¿Cómo podemos ayudarte?</label>
+                                    <div class="mt-2.5">
+                                        <textarea name="message" id="message" rows="4" class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-700 sm:text-sm sm:leading-6 transition-all" placeholder="Tengo una idea para un portafolio personal..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="pt-2">
+                                    <a href="https://wa.me/50433671433" target="_blank" class="block w-full rounded-lg bg-brand-800 px-5 py-4 text-center text-lg font-semibold text-white shadow-md hover:bg-brand-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 transition-all transform hover:-translate-y-0.5">
+                                        Enviar Mensaje por WhatsApp
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ===== Footer ===== --><footer class="bg-gray-900 text-gray-400">
+            <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                    
+                    <!-- Columna 1: Logo e Info --><div class="md:col-span-1">
+                        <a href="#" class="flex items-center">
+                            <img src="omnilinky_logo.png" alt="OmniLinky Web Studio Logo" class="h-10 w-auto filter saturate-50">
+                        </a>
+                        <p class="mt-4 text-base">
+                            Diseño con personalidad. Tecnología que simplifica. Resultados que destacan.
+                        </p>
+                        <div class="mt-6 flex space-x-5">
+                            <!-- Iconos Sociales (Inline SVG) --><a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <span class="sr-only">Instagram</span>
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.024.06 1.378.06 3.808s-.012 2.784-.06 3.808c-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.024.048-1.378.06-3.808.06s-2.784-.012-3.808-.06c-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427C2.013 14.784 2 14.43 2 12s.013-2.784.06-3.808c.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.78 3.615c.636-.247 1.363-.416 2.427-.465C9.23 2.013 9.57 2 12 2h.315zM12 6.867c-2.836 0-5.133 2.296-5.133 5.133s2.297 5.133 5.133 5.133 5.133-2.296 5.133-5.133S14.836 6.867 12 6.867zM12 15.133c-1.728 0-3.133-1.405-3.133-3.133s1.405-3.133 3.133-3.133 3.133 1.405 3.133 3.133-1.405 3.133-3.133 3.133zM16.838 7.912a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0z" clip-rule="evenodd" /></svg>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <span class="sr-only">LinkedIn</span>
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clip-rule="evenodd"/></svg>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <span class="sr-only">X (Twitter)</span>
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Columna 2: Enlaces Rápidos --><div>
+                        <h3 class="text-sm font-semibold leading-6 text-white">Navegación</h3>
+                        <ul role="list" class="mt-4 space-y-3">
+                            <li><a href="#servicios" class="hover:text-white transition-colors">Servicios</a></li>
+                            <li><a href="#portafolio" class="hover:text-white transition-colors">Portafolio</a></li>
+                            <li><a href="#nosotros" class="hover:text-white transition-colors">Nosotros</a></li>
+                            <li><a href="#fundador" class="hover:text-white transition-colors">Fundador</a></li>
+                            <li><a href="#contacto" class="hover:text-white transition-colors">Contacto</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Columna 3: Lemas --><div>
+                        <h3 class="text-sm font-semibold leading-6 text-white">Lemas</h3>
+                        <ul role="list" class="mt-4 space-y-3">
+                            <li><span class="text-gray-400">Crea, conecta, destaca.</span></li>
+                            <li><span class="text-gray-400">Tu presencia digital reinventada.</span></li>
+                            <li><span class="text-gray-400">Hacemos webs que cuentan historias.</span></li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="mt-16 border-t border-white/10 pt-8 text-center">
+                    <p class="text-sm">&copy; 2025 OmniLinky Web Studio. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Script para el menú móvil --><script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const iconOpen = document.getElementById('menu-icon-open');
+            const iconClose = document.getElementById('menu-icon-close');
+            
+            // Función para cerrar el menú (usada por el botón y los enlaces)
+            function closeMenu() {
+                mobileMenu.classList.add('hidden');
+                iconOpen.classList.remove('hidden');
+                iconClose.classList.add('hidden');
+            }
+
+            // Toggle del menú
+            menuButton.addEventListener('click', function () {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                if (isHidden) {
+                    mobileMenu.classList.remove('hidden');
+                    iconOpen.classList.add('hidden');
+                    iconClose.classList.remove('hidden');
+                } else {
+                    closeMenu();
+                }
+            });
+
+            // Cierra el menú al hacer clic en un enlace
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    closeMenu();
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
+
+

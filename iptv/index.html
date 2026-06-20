@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVision - Cargar Lista IPTV</title>
+    <style>
+        /* ... (tus estilos existentes, no necesitan cambios) ... */
+        /* Estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Fondo animado */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460, #533483, #7209b7);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Contenedor principal */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        /* Encabezado */
+        .header {
+            margin-bottom: 3rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #e8eaf6, #c5cae9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(200, 200, 255, 0.3);
+            margin-bottom: 0.5rem;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(200, 200, 255, 0.2); }
+            to { text-shadow: 0 0 40px rgba(200, 200, 255, 0.4); }
+        }
+
+        .subtitle {
+            color: rgba(232, 234, 246, 0.8);
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+
+        /* Tarjeta de cristal */
+        .glass-card {
+            background: rgba(30, 30, 60, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease-out;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.5);
+            border-color: rgba(138, 180, 248, 0.2);
+        }
+
+        /* Secciones de entrada */
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-label {
+            color: #e8eaf6;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+            text-align: left;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(30, 30, 60, 0.4);
+            color: #e8eaf6;
+            backdrop-filter: blur(10px);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem; /* Espacio entre campos */
+        }
+
+        .input-field::placeholder {
+            color: rgba(232, 234, 246, 0.5);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(138, 180, 248, 0.6);
+            background: rgba(30, 30, 60, 0.6);
+            transform: scale(1.02);
+        }
+
+        /* Botones */
+        .btn {
+            background: linear-gradient(45deg, #5c6bc0, #7986cb);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 0.5rem;
+            box-shadow: 0 8px 25px rgba(92, 107, 192, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(92, 107, 192, 0.4);
+            background: linear-gradient(45deg, #7986cb, #9575cd);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* Botones de opción */
+        .option-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-btn {
+            background: rgba(138, 180, 248, 0.1);
+            color: #e8eaf6;
+            border: 1px solid rgba(138, 180, 248, 0.3);
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn.active, .option-btn:hover {
+            background: linear-gradient(45deg, #5c6bc0, #7986cb);
+            border-color: #7986cb;
+            box-shadow: 0 5px 15px rgba(92, 107, 192, 0.3);
+        }
+
+        /* Carga y error */
+        .loading {
+            display: none;
+            text-align: center;
+            color: #e8eaf6;
+            font-size: 1.2rem;
+            margin: 2rem 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(232, 234, 246, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #7986cb;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            display: none;
+            background: rgba(156, 39, 176, 0.2);
+            color: #e8eaf6;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border: 1px solid rgba(156, 39, 176, 0.3);
+        }
+
+        /* Animaciones generales */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Elementos flotantes de fondo */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: rgba(138, 180, 248, 0.1);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* Message Box Styling (for alerts) */
+        .message-box {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 5000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-box.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-10px);
+        }
+
+        .message-box.info {
+            background: rgba(66, 133, 244, 0.9); /* Google Blue */
+        }
+
+        .message-box.success {
+            background: rgba(52, 168, 83, 0.9); /* Google Green */
+        }
+
+        .message-box.error {
+            background: rgba(234, 67, 53, 0.9); /* Google Red */
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .logo {
+                font-size: 2.5rem;
+            }
+            .option-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="floating-elements">
+        <div class="floating-element" style="width: 60px; height: 60px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-element" style="width: 40px; height: 40px; top: 20%; right: 20%; animation-delay: 2s;"></div>
+        <div class="floating-element" style="width: 80px; height: 80px; bottom: 20%; left: 15%; animation-delay: 4s;"></div>
+        <div class="floating-element" style="width: 50px; height: 50px; bottom: 30%; right: 10%; animation-delay: 1s;"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">StreamVision</h1>
+            <p class="subtitle">Carga tu Lista IPTV</p>
+        </div>
+
+        <div class="glass-card">
+            <div class="option-buttons">
+                <button class="option-btn active" data-type="m3u">Enlace M3U</button>
+                <button class="option-btn" data-type="stream1">1-Stream</button>
+                <button class="option-btn" data-type="xc">XC</button>
+            </div>
+
+            <div id="m3u-fields" class="input-section">
+                <label for="m3uInput" class="input-label">Enlace M3U de tu Lista IPTV</label>
+                <input type="url" id="m3uInput" class="input-field" placeholder="https://ejemplo.com/playlist.m3u" autofocus>
+            </div>
+            
+            <div id="stream1-fields" class="input-section" style="display: none;">
+                <label for="stream1Url" class="input-label">URL del Servidor 1-Stream</label>
+                <input type="url" id="stream1Url" class="input-field" placeholder="http://servidor.com:port">
+                <label for="stream1User" class="input-label">Usuario</label>
+                <input type="text" id="stream1User" class="input-field" placeholder="tu_usuario">
+                <label for="stream1Pass" class="input-label">Contraseña</label>
+                <input type="password" id="stream1Pass" class="input-field" placeholder="tu_contraseña">
+            </div>
+
+            <div id="xc-fields" class="input-section" style="display: none;">
+                <label for="xcUrl" class="input-label">URL del Servidor XC</label>
+                <input type="url" id="xcUrl" class="input-field" placeholder="http://servidor.com:port">
+                <label for="xcUser" class="input-label">Usuario</label>
+                <input type="text" id="xcUser" class="input-field" placeholder="tu_usuario">
+                <label for="xcPass" class="input-field" placeholder="tu_contraseña">Contraseña</label>
+                <input type="password" id="xcPass" class="input-field" placeholder="tu_contraseña">
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="processInput()">🚀 Obtener Canales</button>
+                <button class="btn" onclick="clearInput()" style="background: linear-gradient(45deg, #8e24aa, #ab47bc); box-shadow: 0 8px 25px rgba(142, 36, 170, 0.3);">🗑️ Limpiar</button>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Verificando tus credenciales...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Claves para localStorage
+        const M3U_URL_KEY = 'iptvM3uUrl';
+        const STREAM1_CREDS_KEY = 'stream1Creds';
+        const XC_CREDS_KEY = 'xcCreds';
+        const LAST_TYPE_KEY = 'lastInputType';
+        // Nuevas claves para guardar información que se pasará a loading.html
+        const CONNECTION_TYPE_KEY = 'connectionType';
+        const CONNECTION_DETAILS_KEY = 'connectionDetails';
+
+
+        let currentInputType = 'm3u'; // Tipo de entrada actual
+
+        // URL de tu propio servidor proxy Node.js en Render
+        const LOCAL_CORS_PROXY_URL = 'https://iptv-server-render.onrender.com/proxy?url='; // Asegúrate que esta es la URL correcta de tu proxy
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a simple message box.
+         * @param {string} message The message to display.
+         * @param {string} type 'success', 'error' or 'info' for styling.
+         */
+        function showMessageBox(message, type = 'info') {
+            const messageBox = document.createElement('div');
+            messageBox.className = `message-box ${type}`;
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+
+            setTimeout(() => messageBox.classList.add('show'), 10);
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+                messageBox.addEventListener('transitionend', () => messageBox.remove());
+            }, 3000);
+        }
+
+        // --- Initialization ---
+
+        // Al cargar la página, intentar cargar los datos guardados
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedData();
+            setupOptionButtons();
+            const lastType = localStorage.getItem(LAST_TYPE_KEY) || 'm3u';
+            showInputFields(lastType);
+        });
+
+        // Configura los botones de opción para cambiar la vista
+        function setupOptionButtons() {
+            document.querySelectorAll('.option-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const type = button.dataset.type;
+                    showInputFields(type);
+                    localStorage.setItem(LAST_TYPE_KEY, type); // Guardar la última opción seleccionada
+                });
+            });
+        }
+
+        // Muestra los campos de entrada según el tipo seleccionado
+        function showInputFields(type) {
+            currentInputType = type;
+
+            // Oculta todos los campos
+            document.getElementById('m3u-fields').style.display = 'none';
+            document.getElementById('stream1-fields').style.display = 'none';
+            document.getElementById('xc-fields').style.display = 'none';
+
+            // Muestra los campos correspondientes al tipo
+            document.getElementById(`${type}-fields`).style.display = 'block';
+
+            // Actualiza la clase activa de los botones
+            document.querySelectorAll('.option-btn').forEach(button => {
+                if (button.dataset.type === type) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+
+            // Actualiza el placeholder de carga
+            const loadingText = document.querySelector('#loading p');
+            if (type === 'm3u') {
+                loadingText.textContent = 'Verificando tu enlace M3U...';
+            } else {
+                loadingText.textContent = 'Verificando tus credenciales...';
+            }
+            hideError(); // Oculta errores al cambiar de tipo
+        }
+
+        // Carga los datos guardados en localStorage
+        function loadSavedData() {
+            // Cargar M3U URL
+            const savedM3uUrl = localStorage.getItem(M3U_URL_KEY);
+            if (savedM3uUrl) {
+                document.getElementById('m3uInput').value = savedM3uUrl;
+            }
+
+            // Cargar credenciales 1-Stream
+            const savedStream1Creds = JSON.parse(localStorage.getItem(STREAM1_CREDS_KEY) || '{}');
+            if (savedStream1Creds) {
+                document.getElementById('stream1Url').value = savedStream1Creds.url || '';
+                document.getElementById('stream1User').value = savedStream1Creds.user || '';
+                document.getElementById('stream1Pass').value = savedStream1Creds.pass || '';
+            }
+
+            // Cargar credenciales XC
+            const savedXcCreds = JSON.parse(localStorage.getItem(XC_CREDS_KEY) || '{}');
+            if (savedXcCreds) {
+                document.getElementById('xcUrl').value = savedXcCreds.url || '';
+                document.getElementById('xcUser').value = savedXcCreds.user || '';
+                document.getElementById('xcPass').value = savedXcCreds.pass || '';
+            }
+        }
+
+        // Procesa la entrada según el tipo seleccionado
+        async function processInput() {
+            showLoading(true);
+            hideError();
+
+            try {
+                let urlParams = '';
+                if (currentInputType === 'm3u') {
+                    const url = document.getElementById('m3uInput').value.trim();
+                    if (!url) throw new Error('Por favor, ingresa un enlace M3U válido.');
+                    localStorage.setItem(M3U_URL_KEY, url);
+                    urlParams = `type=m3u&url=${encodeURIComponent(url)}`;
+
+                } else if (currentInputType === 'stream1') {
+                    const url = document.getElementById('stream1Url').value.trim();
+                    const user = document.getElementById('stream1User').value.trim();
+                    const pass = document.getElementById('stream1Pass').value.trim();
+                    if (!url || !user || !pass) throw new Error('Por favor, completa todos los campos para 1-Stream.');
+                    localStorage.setItem(STREAM1_CREDS_KEY, JSON.stringify({ url, user, pass }));
+                    urlParams = `type=stream1&url=${encodeURIComponent(url)}&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`;
+
+                } else if (currentInputType === 'xc') {
+                    const url = document.getElementById('xcUrl').value.trim();
+                    const user = document.getElementById('xcUser').value.trim();
+                    const pass = document.getElementById('xcPass').value.trim();
+                    if (!url || !user || !pass) throw new Error('Por favor, completa todos los campos para XC.');
+                    localStorage.setItem(XC_CREDS_KEY, JSON.stringify({ url, user, pass }));
+                    urlParams = `type=xc&url=${encodeURIComponent(url)}&user=${encodeURIComponent(user)}&pass=${encodeURIComponent(pass)}`;
+                }
+
+                // Guardar la información de conexión en localStorage para loading.html
+                localStorage.setItem(CONNECTION_TYPE_KEY, currentInputType);
+                localStorage.setItem(CONNECTION_DETAILS_KEY, JSON.stringify({
+                    url: document.getElementById(`${currentInputType}Url`)?.value.trim() || document.getElementById('m3uInput')?.value.trim(),
+                    user: document.getElementById(`${currentInputType}User`)?.value.trim(),
+                    pass: document.getElementById(`${currentInputType}Pass`)?.value.trim()
+                }));
+
+                // Redirigir a la página de carga
+                window.location.href = `loading.html?${urlParams}`;
+
+            } catch (error) {
+                console.error('Error al procesar la entrada:', error);
+                showError(`Error: ${error.message}.`);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Limpia los campos y el almacenamiento local
+        function clearInput() {
+            document.getElementById('m3uInput').value = '';
+            document.getElementById('stream1Url').value = '';
+            document.getElementById('stream1User').value = '';
+            document.getElementById('stream1Pass').value = '';
+            document.getElementById('xcUrl').value = '';
+            document.getElementById('xcUser').value = '';
+            document.getElementById('xcPass').value = '';
+
+            localStorage.removeItem(M3U_URL_KEY);
+            localStorage.removeItem(STREAM1_CREDS_KEY);
+            localStorage.removeItem(XC_CREDS_KEY);
+            localStorage.removeItem(LAST_TYPE_KEY);
+            localStorage.removeItem(CONNECTION_TYPE_KEY); // Limpiar también estas nuevas claves
+            localStorage.removeItem(CONNECTION_DETAILS_KEY); // Limpiar también estas nuevas claves
+            localStorage.removeItem('parsedIptvContent'); // Asegúrate de limpiar el contenido parseado al borrar credenciales
+            
+            hideError();
+            // Restablecer a la vista M3U por defecto
+            showInputFields('m3u');
+        }
+
+        // Muestra un mensaje de error
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Oculta el mensaje de error
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Muestra u oculta el indicador de carga
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Permite Enter en los inputs para procesar
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                // Solo procesar si el foco está en un campo de entrada visible
+                const activeElement = document.activeElement;
+                if (activeElement.tagName === 'INPUT' && activeElement.closest('.input-section').style.display !== 'none') {
+                    processInput();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

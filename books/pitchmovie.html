@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<!-- El idioma por defecto ahora es inglés (en) -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Título con clave de idioma -->
+    <title data-lang-key="docTitle">Cinematic Proposal - The Adventures of Jack and his Friends</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purple: #6B46C1;
+            --blue-purple: #8B5CF6;
+            --dark-purple: #4C1D95;
+            --red: #DC2626;
+            --dark-red: #991B1B;
+            --text-light: #F8FAFC;
+            --text-gray: #64748B;
+            --bg-dark: #0F172A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000;
+            color: var(--text-light);
+            overflow: hidden; /* Prevent scrolling until experience starts */
+        }
+        
+        /* Start Screen Overlay */
+        #start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            opacity: 1;
+            transition: opacity 1s ease-out;
+        }
+        #start-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .start-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--blue-purple);
+        }
+        .start-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+        }
+
+        /* Floating Covers Background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .floating-cover {
+            position: absolute;
+            background-size: cover;
+            background-position: center;
+            width: 300px;
+            height: 420px;
+            opacity: 0;
+            filter: blur(8px);
+            animation: float 25s infinite ease-in-out;
+        }
+        
+        .floating-cover:nth-child(1) { background-image: url('El Despertar del Dragon Portada.png'); top: 5%; left: 10%; animation-duration: 30s; animation-delay: 0s; }
+        .floating-cover:nth-child(2) { background-image: url('El Artefacto Legendario Portada.png'); top: 20%; left: 80%; animation-duration: 25s; animation-delay: -5s; }
+        .floating-cover:nth-child(3) { background-image: url('El Misterio de la Mascara Portada.png'); top: 60%; left: 5%; animation-duration: 35s; animation-delay: -10s; }
+        .floating-cover:nth-child(4) { background-image: url('Entre Secretos del Tiempo Portada.png'); top: 80%; left: 90%; animation-duration: 28s; animation-delay: -15s; }
+        .floating-cover:nth-child(5) { background-image: url('El Despertar del Armagedon Portada.png'); top: 50%; left: 50%; animation-duration: 22s; animation-delay: -20s; }
+
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1.2); opacity: 0.25; }
+            50% { transform: translate(calc(var(--tx, 20vw)), calc(var(--ty, 20vh))) rotate(10deg) scale(1); opacity: 0.2; }
+            100% { transform: translate(0, 0) rotate(0deg) scale(1.2); opacity: 0.25; }
+        }
+
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+            z-index: 1000;
+            padding: 1.5rem 2rem;
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--blue-purple);
+            text-decoration: none;
+        }
+
+        /* Contenedor para los botones de navegación */
+        .nav-items {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border: 1px solid var(--blue-purple);
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--text-light);
+        }
+
+        .btn:hover {
+            background: var(--blue-purple);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Estilo para el nuevo botón de idioma */
+        .lang-btn {
+            padding: 0.6rem 1rem;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+            background: rgba(200, 200, 250, 0.1);
+            border: 1px solid var(--text-gray);
+        }
+        .lang-btn:hover {
+            background: var(--text-light);
+            color: var(--bg-dark);
+            border-color: var(--text-light);
+        }
+
+
+        /* Scroll Sections */
+        .scroll-section {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .pitch-text {
+            font-family: 'Cinzel', serif;
+            font-size: 3.5vw;
+            font-weight: 700;
+            max-width: 1000px;
+            text-align: center;
+            line-height: 1.4;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+
+        .pitch-text.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, var(--blue-purple), var(--red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Core Themes Section */
+        .core-themes-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .core-themes-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .core-themes-subtitle {
+            color: var(--text-gray);
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto; /* Añadido para centrar el bloque */
+            margin-right: auto; /* Añadido para centrar el bloque */
+        }
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .theme-card {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease-out;
+        }
+        .theme-card.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .theme-card:nth-child(2).is-visible { transition-delay: 0.2s; }
+        .theme-card:nth-child(3).is-visible { transition-delay: 0.4s; }
+
+        .theme-card h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--blue-purple);
+            margin-bottom: 1rem;
+        }
+        .theme-card p {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Video Section */
+        #video-section {
+            background: transparent;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.5);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .video-element {
+            width: 100%;
+            height: 100%;
+            border: none;
+            object-fit: cover;
+        }
+        
+        /* Details Section (Post-Video) */
+        .details-section {
+            padding: 4rem 2rem;
+            background: rgba(0,0,0,0.5);
+        }
+        .details-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .details-content h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--blue-purple);
+        }
+        .details-content p {
+            font-size: 1.1rem;
+            color: var(--text-gray);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+         .details-content strong {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        
+        /* Contact/CTA Section */
+        .cta-section {
+            text-align: center;
+        }
+        
+        .cta-title {
+             font-family: 'Cinzel', serif;
+             font-size: 3rem;
+             margin-bottom: 1rem;
+        }
+        
+        .cta-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .contact-item {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .contact-item:hover {
+            color: var(--blue-purple);
+        }
+
+
+        @media (max-width: 768px) {
+            .pitch-text {
+                font-size: 6vw;
+            }
+            .start-title {
+                font-size: 2.5rem;
+            }
+            .themes-grid {
+                grid-template-columns: 1fr;
+            }
+             .details-content h2 {
+                font-size: 2rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    
+    <div id="start-screen">
+        <!-- Textos con claves de idioma -->
+        <h1 class="start-title" data-lang-key="startTitle">A Cinematic Proposal</h1>
+        <p class="start-subtitle" data-lang-key="startSubtitle">The Adventures of Jack and his Friends</p>
+        <button id="start-btn" class="btn" data-lang-key="startBtn">Start Presentation</button>
+    </div>
+
+    <div class="background-container">
+        <div class="floating-cover"></div>
+        <div class="floating-cover"></div>
+        <div class="floating-cover"></div>
+        <div class="floating-cover"></div>
+        <div class="floating-cover"></div>
+    </div>
+
+    <header class="header">
+        <nav class="nav">
+            <a href="index.html" class="logo">Alexander Alvarez</a>
+            <!-- Contenedor para botones de navegación -->
+            <div class="nav-items">
+                <a href="index.html" class="btn" data-lang-key="navHome">Home</a>
+                <!-- El nuevo botón de cambio de idioma -->
+                <button id="lang-toggle-btn" class="btn lang-btn">ES</button>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Todas las secciones de texto ahora tienen una clave 'data-lang-key' -->
+        <section class="scroll-section">
+            <h1 class="pitch-text" data-lang-key="pitch1">The next great fantasy saga is already written, and it is <span class="highlight">complete</span>.</h1>
+        </section>
+
+        <section class="scroll-section">
+            <h1 class="pitch-text" data-lang-key="pitch2">There are many stories with great potential. <span class="highlight">This is one of them</span>.</h1>
+        </section>
+        
+        <section class="scroll-section">
+            <h3 class="pitch-text" data-lang-key="pitch3">A <span class="highlight">generational</span> saga that <span class="highlight">matures</span> with its audience.</h3>
+        </section>
+        
+        <section class="scroll-section">
+            <h3 class="pitch-text" data-lang-key="pitch4">A story of <span class="highlight">magic</span>, <span class="highlight">adventure</span>, and <span class="highlight">Mystery</span> that will captivate you.</h3>
+        </section>
+        
+        <section class="scroll-section">
+             <h2 class="pitch-text" data-lang-key="pitch5">"Ever since I started writing this story, I always imagined my characters <span class="highlight">coming to life</span> on the screen."</h2>
+        </section>
+        
+        <section class="scroll-section core-themes-section">
+            <div>
+                <h2 class="core-themes-title" data-lang-key="themesTitle">Beyond the Adventure: The Heart of the Saga</h2>
+                <p class="core-themes-subtitle" data-lang-key="themesSubtitle">This isn't just a story of swords and magic. It's a saga designed for a modern audience craving complexity and emotional resonance.</p>
+                <div class="themes-grid">
+                    <div class="theme-card">
+                        <h3 data-lang-key="theme1Title">A Mystery of Legacy</h3>
+                        <p data-lang-key="theme1Desc">Explore how the good intentions of mentors can have catastrophic consequences, and how a new generation must deal with the secrets of their predecessors.</p>
+                    </div>
+                    <div class="theme-card">
+                        <h3 data-lang-key="theme2Title">A Struggle of Betrayal</h3>
+                        <p data-lang-key="theme2Desc">What is more dangerous: a monster threatening the world, or a family wound that never healed and has grown in secret for years?</p>
+                    </div>
+                    <div class="theme-card">
+                        <h3 data-lang-key="theme3Title">A Plot that Defies Reality</h3>
+                        <p data-lang-key="theme3Desc">The fight is not just against external enemies, but against perception itself, in places where the rules of time and space do not apply.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="scroll-section" id="video-section">
+            <div class="video-container">
+                 <!-- Cambiado src a la versión en inglés por defecto -->
+                 <video id="pitch-video" class="video-element" src="trailer_english.mp4" autoplay muted loop playsinline></video>
+            </div>
+        </section>
+        
+        <section class="scroll-section details-section">
+            <div class="details-content">
+                <h2 data-lang-key="detailsTitle">The Potential of a Global Franchise</h2>
+                <p data-lang-key="detailsP1">
+                    In this universe, every event obeys a hidden purpose. Dragons, artifacts, and masked figures... each seems to be fighting their own battle, but in reality, they all serve the same destiny.
+                </p>
+                <p data-lang-key="detailsP2">
+                    With <strong>5 Books ready to be 5 Seasons</strong> of an epic series, complex characters, and an expandable world, this saga is not just a story, it's a universe. A story that deserves not only to be read, but to be <strong>SEEN</strong>.
+                </p>
+            </div>
+        </section>
+        
+        <section class="scroll-section cta-section">
+             <div>
+                <h3 class="cta-title" data-lang-key="ctaTitle">The Most Dangerous Truth</h3>
+                <p class="cta-subtitle" data-lang-key="ctaSubtitle">The villain you fear...<br>may not be the true antagonist.</p>
+                <div class="contact-info">
+                    <a href="mailto:alexander.alvarez0806@gmail.com" class="contact-item">📧 alexander.alvarez0806@gmail.com</a>
+                    <a href="https://wa.me/50433671433" target="_blank" class="contact-item">📱 WhatsApp: +504 3367-1433</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <script>
+        // --- INICIO DE LÓGICA DE TRADUCCIÓN ---
+
+        // 1. Objeto con todas las traducciones
+        const translations = {
+            'en': {
+                'docTitle': 'Cinematic Proposal - The Adventures of Jack and his Friends',
+                'startTitle': 'A Cinematic Proposal',
+                'startSubtitle': 'The Adventures of Jack and his Friends',
+                'startBtn': 'Start Presentation',
+                'navHome': 'Home',
+                'pitch1': 'The next great fantasy saga is already written, and it is <span class="highlight">complete</span>.',
+                'pitch2': 'There are many stories with great potential. <span class="highlight">This is one of them</span>.',
+                'pitch3': 'A <span class="highlight">generational</span> saga that <span class="highlight">matures</span> with its audience.',
+                'pitch4': 'A story of <span class="highlight">magic</span>, <span class="highlight">adventure</span>, and <span class="highlight">Mystery</span> that will captivate you.',
+                'pitch5': '"Ever since I started writing this story, I always imagined my characters <span class="highlight">coming to life</span> on the screen."',
+                'themesTitle': 'Beyond the Adventure: The Heart of the Saga',
+                'themesSubtitle': 'This isn\'t just a story of swords and magic. It\'s a saga designed for a modern audience craving complexity and emotional resonance.',
+                'theme1Title': 'A Mystery of Legacy',
+                'theme1Desc': 'Explore how the good intentions of mentors can have catastrophic consequences, and how a new generation must deal with the secrets of their predecessors.',
+                'theme2Title': 'A Struggle of Betrayal',
+                'theme2Desc': 'What is more dangerous: a monster threatening the world, or a family wound that never healed and has grown in secret for years?',
+                'theme3Title': 'A Plot that Defies Reality',
+                'theme3Desc': 'The fight is not just against external enemies, but against perception itself, in places where the rules of time and space do not apply.',
+                'detailsTitle': 'The Potential of a Global Franchise',
+                'detailsP1': 'In this universe, every event obeys a hidden purpose. Dragons, artifacts, and masked figures... each seems to be fighting their own battle, but in reality, they all serve the same destiny.',
+                'detailsP2': 'With <strong>5 Books ready to be 5 Seasons</strong> of an epic series, complex characters, and an expandable world, this saga is not just a story, it\'s a universe. A story that deserves not only to be read, but to be <strong>SEEN</strong>.',
+                'ctaTitle': 'The Most Dangerous Truth',
+                'ctaSubtitle': 'The villain you fear...<br>may not be the true antagonist.'
+            },
+            'es': {
+                'docTitle': 'Propuesta Cinematográfica - Las Aventuras de Jack y sus Amigos',
+                'startTitle': 'Una Propuesta Cinematográfica',
+                'startSubtitle': 'Las Aventuras de Jack y sus Amigos',
+                'startBtn': 'Iniciar Presentación',
+                'navHome': 'Inicio',
+                'pitch1': 'La proxima gran saga de fantasía ya esta escrita, y esta <span class="highlight">completa</span>.',
+                'pitch2': 'Hay muchas historias con gran potencial. <span class="highlight">Esta es una de ellas</span>.',
+                'pitch3': 'Una saga <span class="highlight">generacional</span>que <span class="highlight">madura</span> con su audiencia.',
+                'pitch4': 'Una historia de <span class="highlight">magia</span>, <span class="highlight">aventura</span> y <span class="highlight">Misterio</span> que te cautivará.',
+                'pitch5': '"Desde que escribía esta historia, siempre me imaginaba a mis personajes <span class="highlight">cobrar vida</span> en la pantalla."',
+                'themesTitle': 'Más Allá de la Aventura: El Corazón de la Saga',
+                'themesSubtitle': 'Esta no es solo una historia de espadas y magia. Es una saga diseñada para una audiencia moderna que anhela complejidad y resonancia emocional.',
+                'theme1Title': 'Un Misterio de Legado',
+                'theme1Desc': 'Explora cómo las buenas intenciones de los mentores pueden tener consecuencias catastróficas, y cómo una nueva generación debe lidiar con los secretos de sus predecesores.',
+                'theme2Title': 'Una Lucha de Traición',
+                'theme2Desc': '¿Qué es más peligroso, un monstruo que amenaza al mundo, o una herida familiar que nunca sanó y ha crecido en secreto durante años?',
+                'theme3Title': 'Una Trama que Desafía la Realidad',
+                'theme3Desc': 'La lucha no es solo contra enemigos externos, sino contra la percepción misma, en lugares donde las reglas del tiempo y el espacio no se aplican.',
+                'detailsTitle': 'El Potencial de una Franquicia Global',
+                'detailsP1': 'En este universo, cada acontecimiento obedece a un propósito oculto. Dragones, artefactos y enmascarados… cada uno parece librar su propia batalla, pero en realidad, todos sirven a un mismo destino.',
+                'detailsP2': 'Con <strong>5 Libros listos para ser 5 Temporadas</strong>, de una serie épica, personajes complejos y un mundo expansible, esta saga no es solo una historia, es un universo. Una historia que merece no solo ser leída, sino <strong>VISTA</strong>.',
+                'ctaTitle': 'La Verdad más Peligrosa',
+                'ctaSubtitle': 'El villano al que temes...<br>quizá no sea el verdadero antagonista.'
+            }
+        };
+
+        // 2. Estado actual del idioma
+        let currentLang = 'en'; // Inglés por defecto
+
+        // 3. Función para cambiar el idioma
+        // Modificada para aceptar y aplicar el estado del video
+        function setLanguage(lang, videoState = { time: 0, paused: true, muted: true }) {
+            currentLang = lang;
+            document.documentElement.lang = lang; // Actualiza la etiqueta <html lang="">
+            
+            // Actualiza el texto del botón de idioma
+            const langToggleBtn = document.getElementById('lang-toggle-btn');
+            if (langToggleBtn) {
+                langToggleBtn.textContent = lang === 'en' ? 'ES' : 'EN';
+            }
+            
+            // Itera sobre todos los elementos que tienen una clave de idioma
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.getAttribute('data-lang-key');
+                if (translations[lang] && translations[lang][key]) {
+                    // Usamos innerHTML para que renderice las etiquetas <span>
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+
+            // --- Nueva lógica de video ---
+            const pitchVideo = document.getElementById('pitch-video');
+            if (pitchVideo) {
+                const newSrc = (lang === 'en') ? 'trailer_english.mp4' : 'trailer_spanish.mp4';
+                
+                // Extraer solo el nombre del archivo de currentSrc para una comparación fiable
+                const currentSrcFile = pitchVideo.currentSrc.split('/').pop();
+
+                // Si el video actual ya es el correcto, no hacer nada
+                if (currentSrcFile === newSrc) {
+                    return;
+                }
+
+                pitchVideo.src = newSrc;
+
+                // Añadir un listener que se ejecuta UNA SOLA VEZ cuando el nuevo video está listo
+                pitchVideo.addEventListener('loadeddata', () => {
+                    pitchVideo.currentTime = videoState.time; // Aplicar el tiempo guardado
+                    pitchVideo.muted = videoState.muted; // Aplicar el estado de silencio
+                    
+                    // Si no estaba pausado, intentar reproducir
+                    if (!videoState.paused) {
+                        pitchVideo.play().catch(e => console.warn("Autoplay after lang switch failed:", e));
+                    }
+                }, { once: true }); // {once: true} es crucial para que no se acumulen listeners
+
+                pitchVideo.load(); // Cargar la nueva fuente
+            }
+        }
+
+        // --- FIN DE LÓGICA DE TRADUCCIÓN ---
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            // Mover pitchVideo aquí para que esté disponible para ambos listeners
+            const pitchVideo = document.getElementById('pitch-video'); 
+            const langToggleBtn = document.getElementById('lang-toggle-btn'); 
+
+            // --- Lógica original ---
+            startBtn.addEventListener('click', () => {
+                startScreen.classList.add('hidden');
+                document.body.style.overflow = 'auto'; // Allow scrolling
+
+                if (pitchVideo) {
+                    pitchVideo.muted = false;
+                    pitchVideo.play().catch(error => {
+                        console.warn("Playback with sound could not be initiated automatically:", error);
+                    });
+                }
+            });
+
+            const sections = document.querySelectorAll('.scroll-section');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        const visibleElements = entry.target.querySelectorAll('.pitch-text, .theme-card');
+                        visibleElements.forEach(el => el.classList.add('is-visible'));
+                    }
+                });
+            }, {
+                threshold: 0.4
+            });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            const floatingCovers = document.querySelectorAll('.floating-cover');
+            floatingCovers.forEach(cover => {
+                const tx = (Math.random() * 40 - 20) + 'vw';
+                const ty = (Math.random() * 40 - 20) + 'vh';
+                cover.style.setProperty('--tx', tx);
+                cover.style.setProperty('--ty', ty);
+            });
+            
+            // --- Nueva lógica para el botón de idioma ---
+            if (langToggleBtn) {
+                langToggleBtn.addEventListener('click', () => {
+                    // 1. Guardar el estado actual del video ANTES de cambiar
+                    let videoState = { time: 0, paused: true, muted: true };
+                    if (pitchVideo) {
+                        videoState.time = pitchVideo.currentTime;
+                        videoState.paused = pitchVideo.paused;
+                        videoState.muted = pitchVideo.muted;
+                    }
+                    
+                    // 2. Determinar nuevo idioma y llamar a setLanguage con el estado
+                    const newLang = currentLang === 'en' ? 'es' : 'en';
+                    setLanguage(newLang, videoState);
+                });
+            }
+
+            // Establece el idioma inicial al cargar la página (Inglés)
+            // No se pasa estado aquí, usará los valores por defecto (tiempo 0)
+            setLanguage('en');
+        });
+    </script>
+</body>
+</html>

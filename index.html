@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrafTlexGames - Gaming Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f4c75, #3282b8, #1a1a2e);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        /* --- Estilos para la barra de navegación --- */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-logo {
+            width: 150px;
+            height: auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+            color: #667eea;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+        }
+
+        .hamburger .bar {
+            width: 25px;
+            height: 3px;
+            background-color: #ffffff;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        
+        .hamburger.active .bar:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .hamburger.active .bar:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active .bar:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                right: 0;
+                width: 100%;
+                background: rgba(10, 10, 10, 0.95);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                text-align: center;
+                padding: 1rem 0;
+                transform: translateY(-100%);
+                transition: transform 0.4s ease-in-out;
+            }
+
+            .nav-links.active {
+                display: flex;
+                transform: translateY(0);
+            }
+
+            .hamburger {
+                display: flex;
+            }
+        }
+        /* --- Fin de estilos de navegación --- */
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInUp 1s ease-out;
+            padding-top: 2rem; 
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* --- Start: Logo Image Styles --- */
+        .logo-image {
+            max-width: 550px; 
+            height: auto;
+            margin-bottom: 1rem;
+            animation: fadeIn 1s ease-out;
+        }
+        /* --- End: Logo Image Styles --- */
+
+        .tagline {
+            font-size: 1.2rem;
+            font-weight: 300;
+            opacity: 0.8;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: fadeIn 1s ease-out 0.5s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 0.8; transform: translateY(0); }
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Modificado para 3 columnas en desktop, 1 en mobile */
+            gap: 3rem;
+            margin-bottom: 5rem;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 3rem;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            animation: slideIn 1s ease-out;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-right: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balloon-icon {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+        }
+
+        .hider-icon {
+            background: linear-gradient(135deg, #3742fa, #2f3542);
+            box-shadow: 0 10px 30px rgba(55, 66, 250, 0.3);
+        }
+        
+        /* Nuevo estilo para Draw My Adventure */
+        .draw-icon {
+            background: linear-gradient(135deg, #FFD700, #DAA520); /* Tonos de crayón/oro */
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+            color: #333; /* Texto oscuro para contraste */
+            font-size: 2.2rem;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .game-subtitle {
+            font-size: 1rem;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 300;
+        }
+
+        .game-description {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            opacity: 0.8;
+            margin-bottom: 2.5rem;
+            font-weight: 300;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .play-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .play-button:hover::before {
+            left: 100%;
+        }
+
+        .play-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        /* --- Estilos para el pie de página --- */
+        .footer {
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
+            border-left: none;
+            border-right: none;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .footer-logo {
+            width: 200px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+
+        .footer-copy {
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            opacity: 0.6;
+        }
+
+        /* --- Fin de estilos de pie de página --- */
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(102, 126, 234, 0.4);
+            border-radius: 50%;
+            animation: particleFloat 20s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo-image {
+                max-width: 80%; 
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .game-card {
+                padding: 2rem;
+            }
+
+            .game-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .game-icon {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="grid-overlay"></div>
+    <div class="floating-particles" id="particles"></div>
+
+    <!-- Barra de Navegación -->
+    <nav class="navbar">
+        <a href="#inicio"><img src="ALEX GAMES.png" alt="CrafTlexGames Logo" class="navbar-logo"></a>
+        <div class="hamburger">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#games">Mis Juegos</a></li>
+            <li><a href="https://youtube.com/@AleXCrafterOficial" target="_blank">YouTube</a></li>
+            <li><a href="https://www.thejacksaga.site" target="_blank">Libros</a></li>
+            <li><a href="https://craftlexgames.com/about.html" target="_blank">Sobre mí</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <img src="ALEX GAMES.png" alt="CrafTlexGames Logo" class="logo-image">
+            <p class="tagline">ONLINE GAMING EXPERIENCE LIKE NO OTHER</p>
+        </header>
+
+        <section class="games-grid" id="games">
+            
+            <!-- TARJETA 1: Balloon Burst -->
+            <div class="game-card">
+                <div class="game-header">
+                    <div class="game-icon balloon-icon">🎈</div>
+                    <div>
+                        <h2 class="game-title">Balloon Burst</h2>
+                        <p class="game-subtitle">Action Arcade</p>
+                    </div>
+                </div>
+                <p class="game-description">
+                    Un intenso juego de habilidad y reflejos donde la precisión lo es todo. Juega modo infinito o niveles que pondrán a prueba tu destreza y agilidad.
+                </p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-number">4.8</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">Fast</div>
+                        <div class="stat-label">Matches</div>
+                    </div>
+                </div>
+                <a href="https://ballonburst.craftlexgames.com/remaster" class="play-button" target="_blank">Iniciar Juego</a>
+            </div>
+
+            <!-- TARJETA 2: The Hider -->
+            <div class="game-card">
+                <div class="game-header">
+                    <div class="game-icon hider-icon">🕵️</div>
+                    <div>
+                        <h2 class="game-title">The Hider</h2>
+                        <p class="game-subtitle">3D Stealth</p>
+                    </div>
+                </div>
+                <p class="game-description">
+                    Adéntrate en un thriller psicológico donde la astucia vence a la fuerza y desvela la historia del detective que encarnas.
+                </p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-number">4.9</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">Epic</div>
+                        <div class="stat-label">Matches</div>
+                    </div>
+                </div>
+                <a href="https://thehider.craftlexgames.com" class="play-button" target="_blank">Jugar Juego</a>
+            </div>
+
+            <!-- TARJETA 3: Draw My Adventure (Añadida) -->
+            <div class="game-card">
+                <div class="game-header">
+                    <div class="game-icon draw-icon">🖍️</div>
+                    <div>
+                        <h2 class="game-title">Draw My Adventure</h2>
+                        <p class="game-subtitle">Creative Survival</p>
+                    </div>
+                </div>
+                <p class="game-description">
+                    Parece un juego simple: haz que tu creación cobre vida y explora el lienzo junto a un amigo. Pero nada es lo que parece... y pronto descubrirás que algunos dibujos no quieren ser borrados.
+                </p>
+                <div class="game-stats">
+                    <div class="stat">
+                        <div class="stat-number">NEW</div>
+                        <div class="stat-label">Status</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">Sketch</div>
+                        <div class="stat-label">Genre</div>
+                    </div>
+                </div>
+                <a href="https://drawyouradventure.craftlexgames.com" class="play-button" target="_blank">¡Dibuja Ahora!</a>
+            </div>
+            
+        </section>
+    </div>
+
+    <!-- Pie de Página -->
+    <footer class="footer">
+        <div class="footer-content">
+            <img src="ALEX GAMES.png" alt="CrafTlexGames Logo" class="footer-logo">
+            <p class="footer-copy">&copy; 2025 CrafTlexGames. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Funcionalidad para el menú de hamburguesa
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+
+        hamburger.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Resto del código JavaScript
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.game-card');
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+            cards.forEach((card, index) => {
+                // Ajuste de intensidad para el efecto 3D
+                const intensity = 3; 
+                const rotateX = -(mouseY - 0.5) * 10 * intensity;
+                const rotateY = (mouseX - 0.5) * 10 * intensity;
+                card.style.transform = `
+                    perspective(1000px)
+                    rotateX(${rotateX}deg)
+                    rotateY(${rotateY}deg)
+                    translateZ(0)
+                `;
+            });
+        });
+
+        document.addEventListener('mouseleave', () => {
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach(card => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)';
+            });
+        });
+
+        document.querySelectorAll('.play-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s linear;
+                    pointer-events: none;
+                `;
+                this.appendChild(ripple);
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        createParticles();
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        document.querySelectorAll('.game-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

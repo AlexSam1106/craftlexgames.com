@@ -1,0 +1,17 @@
+{
+  "name": "Moodle UNICAH",
+  "short_name": "Moodle",
+  "description": "Acceso directo Alexander",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#003366",
+  "icons": [
+    {
+      "src": "moodle-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

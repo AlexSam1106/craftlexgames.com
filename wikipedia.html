@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alexander Alvarez - Wikipedia, la enciclopedia libre</title>
+    <style>
+        /* CSS reset and basic typography matching Wikipedia */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            background-color: #eaecf0; /* Light gray background behind the page */
+            color: #202122;
+        }
+
+        a {
+            color: #0645ad;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        a:visited {
+            color: #0b0080;
+        }
+
+        /* Layout Structure */
+        #mw-page-base {
+            height: 5em;
+            background-color: #fff;
+            background-image: linear-gradient(to bottom, #fff 50%, #f6f6f6 100%);
+        }
+
+        #mw-panel {
+            position: absolute;
+            top: 0;
+            width: 10em;
+            left: 0;
+            padding-top: 1em;
+        }
+
+        /* Fake Wikipedia Logo */
+        .mw-wiki-logo {
+            display: block;
+            width: 135px;
+            height: 135px;
+            margin: 0 auto;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23eee" stroke="%23ccc" stroke-width="2"/><text x="50" y="60" font-family="serif" font-size="40" text-anchor="middle" fill="%23333">W</text></svg>') no-repeat center center;
+            background-size: 100px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        /* Sidebar Navigation */
+        .portal {
+            margin: 0 0.6em 0 0.7em;
+            padding: 0.25em 0;
+        }
+
+        .portal h3 {
+            font-size: 0.75em;
+            color: #54595d;
+            font-weight: normal;
+            margin: 0.5em 0 0 0;
+            padding: 0.25em 0;
+            border-top: 1px solid #c8ccd1;
+        }
+
+        .portal ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.75em;
+        }
+
+        .portal ul li {
+            margin: 0;
+            padding: 0.25em 0;
+        }
+
+        /* Main Content Container */
+        #content {
+            margin-left: 10em;
+            padding: 1.25em 1.5em 1.5em 1.5em;
+            background-color: #ffffff;
+            border: 1px solid #a7d7f9;
+            border-right: none;
+            min-height: 100vh;
+        }
+
+        /* Top Tabs (Artículo, Discusión, etc.) */
+        #left-navigation, #right-navigation {
+            position: absolute;
+            top: 2.5em;
+        }
+
+        #left-navigation { left: 10em; }
+        #right-navigation { right: 0; }
+
+        .vectorTabs {
+            float: left;
+            height: 2.5em;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='); /* Transparent pixel placeholder */
+        }
+
+        .vectorTabs ul {
+            float: left;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .vectorTabs li {
+            float: left;
+            margin: 0;
+            padding: 0;
+            background-image: linear-gradient(to bottom, #fff 0%, #e8e8e8 100%);
+            border: 1px solid #a7d7f9;
+            border-bottom: none;
+            margin-right: 2px;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .vectorTabs li.selected {
+            background: #ffffff;
+            border-bottom: 1px solid #ffffff;
+            z-index: 2;
+            position: relative;
+        }
+
+        .vectorTabs li a {
+            display: block;
+            height: 2.5em;
+            padding: 0 1em;
+            line-height: 2.5em;
+            font-size: 0.8em;
+            color: #0645ad;
+        }
+        
+        .vectorTabs li.selected a {
+            color: #202122;
+        }
+
+        /* Typography for Content */
+        h1#firstHeading {
+            font-family: 'Linux Libertine', Georgia, Times, serif;
+            font-size: 1.8em;
+            font-weight: normal;
+            border-bottom: 1px solid #a2a9b1;
+            margin-bottom: 0.25em;
+            padding-bottom: 0;
+        }
+
+        #siteSub {
+            font-size: 0.85em;
+            color: #54595d;
+            margin-top: 0;
+            margin-bottom: 1.5em;
+        }
+
+        h2 {
+            font-family: 'Linux Libertine', Georgia, Times, serif;
+            font-size: 1.5em;
+            font-weight: normal;
+            border-bottom: 1px solid #a2a9b1;
+            margin-top: 1em;
+            margin-bottom: 0.25em;
+        }
+
+        h3 {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 0.3em;
+            margin-bottom: 0.2em;
+        }
+
+        /* Infobox */
+        .infobox {
+            float: right;
+            clear: right;
+            width: 22em;
+            border: 1px solid #a2a9b1;
+            border-spacing: 3px;
+            background-color: #f8f9fa;
+            color: black;
+            margin: 0.5em 0 1em 1em;
+            padding: 0.2em;
+            font-size: 88%;
+            line-height: 1.5em;
+        }
+
+        .infobox th.cabecera {
+            background-color: #b0c4de;
+            text-align: center;
+            font-size: 125%;
+            font-weight: bold;
+            padding: 0.2em;
+        }
+
+        .infobox img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .infobox th[scope="row"] {
+            text-align: left;
+            width: 35%;
+            padding: 0.2em;
+        }
+
+        .infobox td {
+            padding: 0.2em;
+        }
+
+        /* Table of Contents */
+        #toc {
+            display: table;
+            padding: 7px;
+            margin-bottom: 1em;
+            border: 1px solid #a2a9b1;
+            background-color: #f8f9fa;
+            font-size: 95%;
+        }
+
+        #toc .toctitle {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #toc ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #toc ul ul {
+            padding-left: 2em;
+        }
+
+        #toc li {
+            margin-bottom: 0.2em;
+        }
+
+        .tocnumber {
+            color: #202122;
+        }
+
+        .toctext {
+            color: #0645ad;
+        }
+
+        /* Quote box mimicking Wikipedia */
+        .templatequote {
+            overflow: hidden;
+            margin: 1em 0;
+            padding: 0 40px;
+        }
+        
+        .templatequote .quote {
+            font-family: 'Linux Libertine', Georgia, Times, serif;
+            font-size: 1.1em;
+            font-style: italic;
+        }
+
+        /* Lists */
+        ul {
+            margin: 0.3em 0 0 1.6em;
+            padding: 0;
+            list-style-type: square;
+        }
+
+        /* Reference section */
+        .references {
+            font-size: 90%;
+            column-count: 2;
+            column-gap: 2em;
+            list-style-type: decimal;
+        }
+        
+        .references li {
+            margin-bottom: 0.5em;
+            break-inside: avoid;
+        }
+
+        .reference-text {
+            color: #202122;
+        }
+
+        /* Works grid as a table */
+        .wikitable {
+            background-color: #f8f9fa;
+            color: #202122;
+            margin: 1em 0;
+            border: 1px solid #a2a9b1;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .wikitable th, .wikitable td {
+            border: 1px solid #a2a9b1;
+            padding: 0.2em 0.4em;
+        }
+
+        .wikitable th {
+            background-color: #eaecf0;
+            text-align: center;
+        }
+
+        .edit-link {
+            font-family: sans-serif;
+            font-size: small;
+            font-weight: normal;
+            float: right;
+            margin-left: 1em;
+            color: #0645ad;
+        }
+
+        @media (max-width: 800px) {
+            #mw-panel { display: none; }
+            #content { margin-left: 0; }
+            #left-navigation { left: 0; }
+            .infobox { float: none; width: 100%; margin: 1em 0; }
+            .references { column-count: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Tabs Simulation -->
+    <div id="mw-page-base"></div>
+    <div id="left-navigation">
+        <div class="vectorTabs">
+            <ul>
+                <li class="selected"><a href="#">Artículo</a></li>
+                <li><a href="#">Discusión</a></li>
+            </ul>
+        </div>
+    </div>
+    <div id="right-navigation">
+        <div class="vectorTabs">
+            <ul>
+                <li class="selected"><a href="#">Leer</a></li>
+                <li><a href="#">Editar</a></li>
+                <li><a href="#">Ver historial</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Sidebar Simulation -->
+    <div id="mw-panel">
+        <a class="mw-wiki-logo" href="#" title="Visitar la página principal"></a>
+        <div class="portal">
+            <ul style="margin-left: 0.5em;">
+                <li><a href="#">Portada</a></li>
+                <li><a href="#">Portal de la comunidad</a></li>
+                <li><a href="#">Actualidad</a></li>
+                <li><a href="#">Cambios recientes</a></li>
+                <li><a href="#">Páginas nuevas</a></li>
+                <li><a href="#">Página aleatoria</a></li>
+                <li><a href="#">Ayuda</a></li>
+                <li><a href="#">Donaciones</a></li>
+            </ul>
+        </div>
+        <div class="portal">
+            <h3>Herramientas</h3>
+            <ul>
+                <li><a href="#">Lo que enlaza aquí</a></li>
+                <li><a href="#">Cambios en enlazadas</a></li>
+                <li><a href="#">Subir archivo</a></li>
+                <li><a href="#">Páginas especiales</a></li>
+                <li><a href="#">Enlace permanente</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="content">
+        <h1 id="firstHeading">Alexander Alvarez</h1>
+        <div id="siteSub">De Wikipedia, la enciclopedia libre</div>
+
+        <div id="bodyContent">
+            
+            <!-- Infobox -->
+            <table class="infobox">
+                <tbody>
+                    <tr>
+                        <th colspan="2" class="cabecera">Alexander Alvarez</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="text-align:center;">
+                            <div style="width: 220px; height: 220px; background-color: #ddd; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: #555; font-style: italic; border: 1px solid #ccc;">
+                                [Imagen de Alexander Alvarez]
+                            </div>
+                            <div style="font-size: 90%; padding-top: 0.2em;">Alexander Alvarez c. 2024</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Información personal</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Nacimiento</th>
+                        <td>6 de noviembre de 2008 (17 años)<br><a href="#">Honduras</a></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Nacionalidad</th>
+                        <td>Hondureña</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Información profesional</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Ocupación</th>
+                        <td>Escritor, <a href="#">YouTuber</a>, desarrollador de videojuegos</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Años activo</th>
+                        <td>2023-presente</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Obras notables</th>
+                        <td>Saga <i>Jack y el Legado del Mentor</i></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Seudónimo</th>
+                        <td>AleXCrafter</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Lead Paragraph -->
+            <p><b>Alexander Alvarez</b> (nacido el 6 de noviembre de 2008 en Honduras) es un autor, desarrollador de videojuegos e <i><a href="#">influencer</a></i> hondureño.<sup id="cite_ref-1"><a href="#cite_note-1">[1]</a></sup> Es conocido en el ámbito literario juvenil por ser el creador de la saga de fantasía y aventuras <i>Jack y el Legado del Mentor</i> (anteriormente conocida como <i>Las Aventuras de Jack y sus Amigos</i>), serie con la que incursionó en la publicación independiente en <a href="#">Amazon</a> a la edad de quince años. En plataformas digitales, es reconocido bajo el seudónimo <b>AleXCrafter</b>, manejando un canal de <a href="#">YouTube</a> centrado en la cultura <i>gamer</i> y <i><a href="#">Minecraft</a></i>.<sup id="cite_ref-2"><a href="#cite_note-2">[2]</a></sup></p>
+
+            <p>Alvarez destaca en la comunidad de creadores de contenido por ser un promotor temprano y activo del uso de la <a href="#">inteligencia artificial</a> generativa como herramienta complementaria en los procesos de escritura creativa y desarrollo de software.<sup id="cite_ref-3"><a href="#cite_note-3">[3]</a></sup></p>
+
+            <!-- Table of Contents -->
+            <div id="toc">
+                <div class="toctitle"><h2>Índice</h2></div>
+                <ul>
+                    <li><a href="#Biografía"><span class="tocnumber">1</span> <span class="toctext">Biografía</span></a></li>
+                    <li><a href="#Carrera"><span class="tocnumber">2</span> <span class="toctext">Carrera</span></a>
+                        <ul>
+                            <li><a href="#Literatura"><span class="tocnumber">2.1</span> <span class="toctext">Literatura</span></a></li>
+                            <li><a href="#YouTube_y_creación_de_contenido"><span class="tocnumber">2.2</span> <span class="toctext">YouTube y creación de contenido</span></a></li>
+                            <li><a href="#Desarrollo_de_videojuegos"><span class="tocnumber">2.3</span> <span class="toctext">Desarrollo de videojuegos</span></a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#Visión_sobre_la_inteligencia_artificial"><span class="tocnumber">3</span> <span class="toctext">Visión sobre la inteligencia artificial</span></a></li>
+                    <li><a href="#Apariciones_públicas_y_reconocimiento"><span class="tocnumber">4</span> <span class="toctext">Apariciones públicas y reconocimiento</span></a></li>
+                    <li><a href="#Obras_publicadas"><span class="tocnumber">5</span> <span class="toctext">Obras publicadas</span></a></li>
+                    <li><a href="#Referencias"><span class="tocnumber">6</span> <span class="toctext">Referencias</span></a></li>
+                    <li><a href="#Enlaces_externos"><span class="tocnumber">7</span> <span class="toctext">Enlaces externos</span></a></li>
+                </ul>
+            </div>
+
+            <!-- Sections -->
+            <h2 id="Biografía">Biografía<span class="edit-link">[<a href="#">editar</a>]</span></h2>
+            <p>Alexander Alvarez nació el 6 de noviembre de 2008 en Honduras. Desde una edad temprana desarrolló interés por la tecnología, los videojuegos y las artes. Durante su infancia, exploró las bases de la programación utilizando motores de creación de juegos orientados a menores como <a href="#">Roblox Studio</a> y <a href="#">Unity</a>.<sup id="cite_ref-4"><a href="#cite_note-4">[4]</a></sup> Más allá del entorno digital, Alvarez cultiva aficiones analógicas como el ajedrez y la interpretación de piano, disciplinas que, según afirma en su sitio web oficial, nutren su pensamiento lógico y expresión artística.</p>
+            
+            <p>Su incursión en la literatura formal comenzó a principios de 2023, con apenas catorce años. Según su biografía oficial, la premisa de su primera novela fue concebida en enero de 2023 durante un viaje a los <a href="#">Estados Unidos</a>. Lo que inició como un ejercicio narrativo personal evolucionó rápidamente hasta convertirse en una serie literaria formalmente publicada meses más tarde.<sup id="cite_ref-4"><a href="#cite_note-4">[4]</a></sup></p>
+
+            <h2 id="Carrera">Carrera<span class="edit-link">[<a href="#">editar</a>]</span></h2>
+            
+            <h3 id="Literatura">Literatura</h3>
+            <p>El trabajo literario de Alvarez se centra en la saga juvenil de fantasía <i>Jack y el Legado del Mentor</i>. La historia sigue las peripecias de Jack y sus compañeros, Wu y Lila, quienes deben resolver misterios antiguos y enfrentarse a diversas adversidades en un universo interconectado. Para marzo de 2025, la serie constaba de cinco entregas completas publicadas a través del sistema de autoedición de <a href="#">Amazon Kindle Direct Publishing</a>.<sup id="cite_ref-5"><a href="#cite_note-5">[5]</a></sup></p>
+            <p>Un aspecto notable de su producción literaria es la utilización abierta de inteligencia artificial. Alvarez utiliza la IA como un "acompañante creativo" para estructurar ideas y agilizar el proceso de escritura. Adicionalmente, el aspecto visual de la saga ha contado con la colaboración del ilustrador Fares Hernandez, quien ha asistido en la creación del arte de las portadas.</p>
+
+            <h3 id="YouTube_y_creación_de_contenido">YouTube y creación de contenido</h3>
+            <p>A la par de su escritura, Alvarez es creador de contenido en YouTube bajo el canal <b>AleXCrafter</b> (registrado como @AleXCrafterOficial). El canal, que cuenta con una comunidad superior a los 4,800 suscriptores, se enfoca principalmente en la creación de mecánicas, tutoriales, <i>gameplays</i> y reseñas del videojuego <i>Minecraft</i>. Su faceta como <i>YouTuber</i> ha convergido en varias ocasiones con su carrera literaria; uno de sus hitos documentados en la plataforma incluye un reconocimiento público recibido por parte del popular creador de contenido <a href="#">BobicraftMC</a> durante un evento de firma de libros en Honduras.<sup id="cite_ref-6"><a href="#cite_note-6">[6]</a></sup></p>
+
+            <h3 id="Desarrollo_de_videojuegos">Desarrollo de videojuegos</h3>
+            <p>En el ámbito de la programación, Alvarez ha desarrollado proyectos independientes de videojuegos web (<i>browser games</i>). Su catálogo conocido incluye:</p>
+            <ul>
+                <li><i><b>Balloon Burst</b></i> (iniciado en mayo de 2024): Un juego de estilo gráfico <i>pixel art</i> 2D centrado en mecánicas de atrapar elementos en pantalla con múltiples minijuegos.</li>
+                <li><i><b>The Hider</b></i> (iniciado en febrero de 2025): Un ambicioso proyecto <i>thriller</i> en 3D que enfatiza la ambientación sonora y el componente narrativo, donde el jugador toma el rol de un detective con un pasado oscuro.<sup id="cite_ref-7"><a href="#cite_note-7">[7]</a></sup></li>
+            </ul>
+
+            <h2 id="Visión_sobre_la_inteligencia_artificial">Visión sobre la inteligencia artificial<span class="edit-link">[<a href="#">editar</a>]</span></h2>
+            <p>Alvarez ha documentado su perspectiva sobre las inteligencias artificiales a través de ensayos publicados en la plataforma <a href="#">Medium</a>. Se posiciona en contra del estigma del uso de la IA en el arte, argumentando que debe ser vista como una herramienta de amplificación y no como un reemplazo del autor humano.</p>
+            
+            <div class="templatequote">
+                <div class="quote">«La IA no piensa por sí misma; simplemente sigue instrucciones. Incluso las inteligencias artificiales “agénticas”, que parecen actuar por cuenta propia, siguen dependiendo de una idea inicial, de una guía humana, de alguien que marque el rumbo [...] No te va a dar una historia perfecta ni un juego listo para lanzar. Pero puede ayudarte a llegar ahí más rápido, de forma más clara. No necesariamente más fácil, pero sí más eficiente.»</div>
+                <div style="text-align: right;">—Alexander Alvarez.<sup id="cite_ref-medium_3-0"><a href="#cite_note-medium-3">[3]</a></sup></div>
+            </div>
+
+            <h2 id="Apariciones_públicas_y_reconocimiento">Apariciones públicas y reconocimiento<span class="edit-link">[<a href="#">editar</a>]</span></h2>
+            <p>El perfil inusual de Alvarez como autor adolescente y desarrollador lo ha llevado a ser reconocido en el ámbito educativo de su país. Fue objeto de un perfil biográfico en el programa <i>"La Clave del Éxito"</i>, transmitido por el canal educativo STVE Telebásica (afiliado a la Secretaría de Educación de Honduras), donde se describió su trayectoria de «la excelencia académica a las letras de Amazon».<sup id="cite_ref-8"><a href="#cite_note-8">[8]</a></sup></p>
+            <p>Asimismo, su saga literaria fue presentada formalmente durante una jornada cultural auspiciada por la Facultad de Letras y la Biblioteca Central de la <a href="#">Universidad Nacional Autónoma de Honduras (UNAH)</a>.<sup id="cite_ref-9"><a href="#cite_note-9">[9]</a></sup></p>
+
+            <h2 id="Obras_publicadas">Obras publicadas<span class="edit-link">[<a href="#">editar</a>]</span></h2>
+            <p>Títulos pertenecientes a la saga <i>Jack y el Legado del Mentor</i>:</p>
+            <table class="wikitable">
+                <tbody>
+                    <tr>
+                        <th style="width: 5%;">Orden</th>
+                        <th style="width: 35%;">Título</th>
+                        <th style="width: 60%;">Premisa</th>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">1</td>
+                        <td><i>El Despertar del Dragón</i></td>
+                        <td>El volumen introductorio que da inicio a la aventura narrativa.</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">2</td>
+                        <td><i>El Artefacto Legendario</i></td>
+                        <td>Jack y sus amigos lidian con el descubrimiento de un objeto ancestral.</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">3</td>
+                        <td><i>El Misterio de la Máscara</i></td>
+                        <td>Una exploración de secretos ocultos y la aparición de nuevos adversarios.</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">4</td>
+                        <td><i>Entre Secretos del Tiempo</i></td>
+                        <td>Volumen enfocado en viajes a través de la historia y revelaciones canónicas.</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">5</td>
+                        <td><i>El Despertar del Armagedón</i></td>
+                        <td>El clímax de la pentalogía principal donde el destino del universo es decidido.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 id="Referencias">Referencias<span class="edit-link">[<a href="#">editar</a>]</span></h2>
+            <div class="references">
+                <ol>
+                    <li id="cite_note-1"><span class="reference-text">↑ <i>Biografía Oficial de Alexander Alvarez</i>. CrafTlexGames. Consultado el 29 de abril de 2026.</span></li>
+                    <li id="cite_note-2"><span class="reference-text">↑ «Perfil de Autor: Alexander Alvarez». <i>Amazon</i>. Consultado el 29 de abril de 2026.</span></li>
+                    <li id="cite_note-medium-3"><span class="reference-text">↑ Saltar a: <sup><i><b>a</b></i></sup> <sup><i><b>b</b></i></sup> Alvarez, Alexander. «La Inteligencia Artificial como Herramienta, No como Reemplazo: Mi Experiencia Personal». <i>Medium</i>. Consultado el 29 de abril de 2026.</span></li>
+                    <li id="cite_note-4"><span class="reference-text">↑ Saltar a: <sup><i><b>a</b></i></sup> <sup><i><b>b</b></i></sup> «Raíces y Pasiones». <i>Alexander Alvarez - Portfolio Web</i>. Consultado el 29 de abril de 2026.</span></li>
+                    <li id="cite_note-5"><span class="reference-text">↑ «La Saga de Jack: Un Universo Literario». Consultado el 29 de abril de 2026.</span></li>
+                    <li id="cite_note-6"><span class="reference-text">↑ «Canal AleXCrafterOficial». <i>YouTube</i>. Consultado el 29 de abril de 2026.</span></li>
+                    <li id="cite_note-7"><span class="reference-text">↑ «Alex Games - Catálogo». Consultado el 29 de abril de 2026.</span></li>
+                    <li id="cite_note-8"><span class="reference-text">↑ <i>La Clave del Éxito - Alexander Alvarez</i>. STVE Telebásica, Honduras.</span></li>
+                    <li id="cite_note-9"><span class="reference-text">↑ «Presentación de obra en jornada cultural». <i>Universidad Nacional Autónoma de Honduras (UNAH)</i>.</span></li>
+                </ol>
+            </div>
+
+            <h2 id="Enlaces_externos">Enlaces externos<span class="edit-link">[<a href="#">editar</a>]</span></h2>
+            <ul>
+                <li><a href="https://craftlexgames.com">Sitio web oficial (CrafTlexGames)</a></li>
+                <li><a href="https://www.youtube.com/@AleXCrafterOficial">AleXCrafter</a> en YouTube.</li>
+                <li><a href="https://amazon.com/author/alexander_alvarez">Perfil de autor</a> en Amazon.</li>
+            </ul>
+
+        </div>
+    </div>
+
+</body>
+</html>

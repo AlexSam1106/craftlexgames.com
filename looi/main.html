@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOOI Clone - Iniciando</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- Pantallas Principales --- */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #001122 0%, #000000 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 1s ease-in-out;
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        .screen.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+
+        .screen.hidden {
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+
+        /* --- Pantalla de Carga --- */
+        .loading-screen {
+            z-index: 2000;
+            background: radial-gradient(circle at center, #000814 0%, #000000 100%);
+        }
+
+        .loading-container {
+            text-align: center;
+            z-index: 2001;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-logo {
+            font-size: 5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00f5ff, #0099ff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 2s ease-in-out infinite;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 40px rgba(0, 245, 255, 0.6);
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            color: #00ccff;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+        }
+
+        .loading-bar {
+            width: 400px;
+            height: 8px;
+            background: rgba(0, 245, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 auto 1rem;
+            border: 1px solid rgba(0, 245, 255, 0.3);
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00f5ff, #0099ff, #00f5ff);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .loading-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00f5ff;
+            margin-bottom: 1rem;
+        }
+
+        .loading-status {
+            font-size: 1rem;
+            color: #66ccff;
+            opacity: 0.8;
+        }
+
+        .loading-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 2000;
+        }
+
+        .loading-particles::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #00f5ff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(0, 245, 255, 0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #0099ff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(0, 153, 255, 0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #00f5ff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: particleFloat 20s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-200px, -100px); }
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, #00f5ff, #0099ff);
+            border: none;
+            border-radius: 2rem;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 2rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .start-button.fade-in {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 245, 255, 0.5);
+        }
+
+        /* --- Pantalla de Inicio (Modo Selección) --- */
+        .intro-screen {
+            z-index: 1000;
+        }
+
+        .intro-screen.space-background {
+            background: radial-gradient(circle at center, #000814 0%, #000000 100%);
+        }
+        .intro-screen.space-background::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #00f5ff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(0, 245, 255, 0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #0099ff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(0, 153, 255, 0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #00f5ff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: particleFloat 20s linear infinite;
+            z-index: -1;
+        }
+
+
+        .logo-container {
+            position: relative;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00f5ff, #0099ff, #ff00ff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(0, 245, 255, 0.5);
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #00ccff;
+            text-align: center;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        .mode-selection {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .mode-card {
+            background: rgba(0, 245, 255, 0.1);
+            border: 2px solid rgba(0, 245, 255, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .mode-card:hover {
+            background: rgba(0, 245, 255, 0.2);
+            border-color: rgba(0, 245, 255, 0.8);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 245, 255, 0.4);
+        }
+
+        .mode-card.selected {
+            background: rgba(0, 245, 255, 0.3);
+            border-color: #00f5ff;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.6);
+        }
+
+        .mode-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .continue-btn {
+            background: linear-gradient(45deg, #00f5ff, #0099ff);
+            border: none;
+            border-radius: 2rem;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 245, 255, 0.5);
+        }
+
+        .continue-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- Pantalla de Conexión Bluetooth --- */
+        .bluetooth-screen {
+            z-index: 1001;
+        }
+
+        .bluetooth-screen.space-background {
+            background: radial-gradient(circle at center, #000814 0%, #000000 100%);
+        }
+        .bluetooth-screen.space-background::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #00f5ff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(0, 245, 255, 0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #0099ff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(0, 153, 255, 0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #00f5ff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: particleFloat 20s linear infinite;
+            z-index: -1;
+        }
+
+
+        .bluetooth-container {
+            background: rgba(0, 245, 255, 0.1);
+            border: 2px solid rgba(0, 245, 255, 0.3);
+            border-radius: 2rem;
+            padding: 3rem;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .bluetooth-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bluetoothPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes bluetoothPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .bluetooth-title {
+            font-size: 2.5rem;
+            color: #00f5ff;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .bluetooth-subtitle {
+            font-size: 1.2rem;
+            color: #66ccff;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .bluetooth-status {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-dot.disconnected {
+            background: #ff4757;
+            animation: statusPulse 2s infinite;
+        }
+
+        .status-dot.connecting {
+            background: #ffa502;
+            animation: statusPulse 1s infinite;
+        }
+
+        .status-dot.connected {
+            background: #2ed573;
+            animation: statusPulse 3s infinite;
+        }
+
+        .bluetooth-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .bluetooth-btn {
+            background: linear-gradient(45deg, rgba(0, 245, 255, 0.2), rgba(0, 153, 255, 0.2));
+            border: 2px solid rgba(0, 245, 255, 0.4);
+            border-radius: 1rem;
+            padding: 1rem 2rem;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .bluetooth-btn:hover {
+            background: linear-gradient(45deg, rgba(0, 245, 255, 0.3), rgba(0, 153, 255, 0.3));
+            border-color: #00f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 245, 255, 0.4);
+        }
+
+        .bluetooth-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .connect-btn {
+            background: linear-gradient(45deg, #00f5ff, #0099ff);
+            color: #000;
+            font-weight: 700;
+        }
+
+        .connect-btn:hover {
+            background: linear-gradient(45deg, #0099ff, #00f5ff);
+        }
+
+        .skip-btn {
+            background: linear-gradient(45deg, rgba(255, 71, 87, 0.2), rgba(255, 107, 107, 0.2));
+            border-color: rgba(255, 71, 87, 0.4);
+        }
+
+        .skip-btn:hover {
+            background: linear-gradient(45deg, rgba(255, 71, 87, 0.3), rgba(255, 107, 107, 0.3));
+            border-color: #ff4757;
+        }
+
+        .device-list {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: left;
+            display: none;
+        }
+
+        .device-list.visible {
+            display: block;
+        }
+
+        .device-list h3 {
+            color: #00f5ff;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .devices-container {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .device-item {
+            background: rgba(0, 245, 255, 0.1);
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .device-item:hover {
+            background: rgba(0, 245, 255, 0.2);
+            border-color: #00f5ff;
+        }
+
+        .device-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .device-name {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .device-id {
+            color: #66ccff;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .device-signal {
+            color: #00f5ff;
+            font-size: 0.9rem;
+        }
+
+        .bluetooth-instructions {
+            background: rgba(0, 0, 0, 0.3); /* Cambiado a un fondo oscuro para contraste */
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            text-align: left;
+            color: #66ccff; /* Color de texto para las instrucciones */
+        }
+
+        .bluetooth-instructions h4 {
+            color: #00f5ff;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .bluetooth-instructions ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .bluetooth-instructions li {
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .bluetooth-instructions li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: #00f5ff;
+        }
+
+        /* --- Efecto de Transición Warp --- */
+        .warp-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 999;
+            pointer-events: none;
+            overflow: hidden;
+            display: none;
+        }
+
+        .warp-lines {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+        }
+
+        .warp-line {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, #00f5ff, transparent);
+            height: 2px;
+            width: 100%;
+            top: var(--y);
+            animation: warpMove 0.8s ease-in-out;
+        }
+
+        @keyframes warpMove {
+            0% {
+                transform: translateX(-100%) scaleX(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(0) scaleX(1);
+            }
+            100% {
+                transform: translateX(100%) scaleX(0);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .loading-bar {
+                width: 90%;
+            }
+            .logo {
+                font-size: 2.5rem;
+            }
+            .mode-selection {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <audio id="bgMusic" loop>
+        <source src="futuristic_music.mp3" type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <div class="loading-screen screen active" id="loadingScreen">
+        <div class="loading-container">
+            <div class="loading-logo">LOOI</div>
+            <div class="loading-text">Inicializando Sistema...</div>
+            <div class="loading-bar">
+                <div class="loading-progress" id="loadingProgress"></div>
+            </div>
+            <div class="loading-percentage" id="loadingPercentage">0%</div>
+            <div class="loading-status" id="loadingStatus">Cargando componentes del sistema...</div>
+            <button class="start-button" id="startButton">Comenzar</button>
+        </div>
+        <div class="loading-particles"></div>
+    </div>
+
+    <div class="intro-screen screen" id="introScreen">
+        <div class="logo-container">
+            <div class="logo">LOOI CLONE</div>
+            <div class="subtitle">Asistente de Inteligencia Artificial Avanzada</div>
+        </div>
+        
+        <div class="mode-selection">
+            <div class="mode-card" data-mode="pc">
+                <div class="mode-icon">💻</div>
+                <h3>Modo PC</h3>
+                <p>Experiencia de escritorio</p>
+            </div>
+            <div class="mode-card" data-mode="robot">
+                <div class="mode-icon">🤖</div>
+                <h3>Modo Robot</h3>
+                <p>Control físico via Bluetooth</p>
+            </div>
+        </div>
+        
+        <button class="continue-btn" id="continueBtn" disabled>Inicializar Sistema</button>
+    </div>
+
+    <div class="bluetooth-screen screen" id="bluetoothScreen">
+        <div class="bluetooth-container">
+            <div class="bluetooth-icon">📡</div>
+            <h2 class="bluetooth-title">Conectar Robot</h2>
+            <p class="bluetooth-subtitle">Establece conexión con tu robot físico</p>
+            
+            <div class="bluetooth-status" id="bluetoothStatus">
+                <div class="status-indicator">
+                    <div class="status-dot disconnected" id="bluetoothDot"></div>
+                    <span id="bluetoothStatusText">Desconectado</span>
+                </div>
+            </div>
+            
+            <div class="bluetooth-controls">
+                <button class="bluetooth-btn connect-btn" id="bluetoothConnectBtn">
+                    <span class="btn-icon">🔗</span>
+                    Conectar via Bluetooth
+                </button>
+                
+                <button class="bluetooth-btn scan-btn" id="bluetoothScanBtn">
+                    <span class="btn-icon">📡</span>
+                    Escanear Dispositivos
+                </button>
+                
+                <button class="bluetooth-btn skip-btn" id="bluetoothSkipBtn">
+                    <span class="btn-icon">⏭️</span>
+                    Continuar sin Robot
+                </button>
+            </div>
+            
+            <div class="device-list" id="deviceList">
+                <h3>Dispositivos Encontrados:</h3>
+                <div class="devices-container" id="devicesContainer">
+                    </div>
+            </div>
+            
+            <div class="bluetooth-instructions">
+                <h4>💡 Instrucciones:</h4>
+                <ul>
+                    <li>Asegúrate de que tu robot esté encendido</li>
+                    <li>Activa el Bluetooth en tu dispositivo</li>
+                    <li>Mantén el robot cerca (máximo 10 metros)</li>
+                    <li>Si no encuentras tu robot, prueba escaneando nuevamente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="warp-effect" id="warpEffect">
+        <div class="warp-lines" id="warpLines"></div>
+    </div>
+
+    <script type="module">
+        // Importar módulos necesarios para main.html
+        import { auth, currentUserId, isAuthenticatedUser, isAuthReady, signOut } from './js/firebase_init.js';
+        import { setUIVariables, startLoadingSequence, createWarpEffect, proceedToIntroScreen, updateStatusDisplay, updateUserIdDisplay, adjustThemeByTime, proceedToChatbotScreen } from './js/ui_manager.js';
+        import { setAudioVariables, playRobotSound, fadeOutAudio, loadVoices } from './js/audio_manager.js';
+        import { setCommandVariables } from './js/command_handler.js';
+
+        // --- Variables Globales y Referencias DOM para main.html ---
+        let selectedMode = null; 
+
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const loadingPercentage = document.getElementById('loadingPercentage');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const startButton = document.getElementById('startButton');
+
+        const introScreen = document.getElementById('introScreen');
+        const continueBtn = document.getElementById('continueBtn');
+        const modeCards = document.querySelectorAll('.mode-card');
+
+        const bluetoothScreen = document.getElementById('bluetoothScreen');
+        const bluetoothConnectBtn = document.getElementById('bluetoothConnectBtn');
+        const bluetoothScanBtn = document.getElementById('bluetoothScanBtn');
+        const bluetoothSkipBtn = document.getElementById('bluetoothSkipBtn');
+        const bluetoothStatusText = document.getElementById('bluetoothStatusText');
+        const bluetoothDot = document.getElementById('bluetoothDot');
+        const deviceList = document.getElementById('deviceList');
+        const devicesContainer = document.getElementById('devicesContainer');
+
+        const warpEffect = document.getElementById('warpEffect');
+
+        // Audio variables (solo las necesarias aquí)
+        const bgMusic = document.getElementById('bgMusic');
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const speechSynthesis = window.speechSynthesis;
+        let voices = []; 
+
+        // Bluetooth variables específicas de main.html (para la conexión inicial)
+        let bluetoothDevice = null;
+        let bluetoothCharacteristic = null;
+        const BLUETOOTH_SERVICE_UUID = '0000ffe0-0000-1000-8000-00805f9b34fb';
+        const BLUETOOTH_CHARACTERISTIC_UUID = '0000ffe1-0000-1000-8000-00805f9b34fb';
+
+
+        // Pasar referencias DOM a los módulos que las necesiten
+        setUIVariables({
+            loadingScreen, loadingProgress, loadingPercentage, loadingStatus, startButton,
+            introScreen, continueBtn, modeCards,
+            bluetoothScreen, bluetoothConnectBtn, bluetoothScanBtn, bluetoothSkipBtn, bluetoothStatusText, bluetoothDot, deviceList, devicesContainer,
+            warpEffect
+        });
+        setAudioVariables({ bgMusic, audioContext, speechSynthesis, voices });
+        setCommandVariables({ selectedMode: localStorage.getItem('looi_selected_mode') });
+
+
+        // --- Event Listeners (Específicos de main.html) ---
+
+        // Botón "Comenzar" en la pantalla de carga
+        startButton.addEventListener('click', () => {
+            audioContext.resume().then(() => {
+                bgMusic.play().catch(e => console.error('No se pudo reproducir la música de fondo:', e));
+            });
+            
+            proceedToIntroScreen(); 
+            
+            playRobotSound('chirp');
+        });
+
+        // Selección de modo en la pantalla de introducción
+        modeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                modeCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedMode = card.dataset.mode;
+                continueBtn.disabled = false;
+                playRobotSound('beep');
+                localStorage.setItem('looi_selected_mode', selectedMode);
+            });
+        });
+
+        // Botón "Inicializar Sistema" en la pantalla de introducción
+        continueBtn.addEventListener('click', () => {
+            if (!selectedMode) return;
+            
+            fadeOutAudio(bgMusic, 800);
+            createWarpEffect();
+            
+            setTimeout(() => {
+                introScreen.classList.remove('active');
+                introScreen.classList.add('hidden');
+                
+                setTimeout(() => {
+                    if (selectedMode === 'robot') {
+                        bluetoothScreen.classList.add('active');
+                        bluetoothScreen.classList.add('space-background');
+                        updateStatusDisplay('Desconectado', false); 
+                    } else { // pc mode
+                        proceedToChatbotScreen('pc', false); 
+                    }
+                }, 500);
+            }, 800);
+        });
+
+        // Botones de la pantalla Bluetooth
+        bluetoothConnectBtn.addEventListener('click', async () => {
+            if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+                bluetoothDevice.gatt.disconnect();
+                return;
+            }
+
+            updateStatusDisplay('Conectando...', false);
+            bluetoothConnectBtn.disabled = true;
+            bluetoothConnectBtn.innerHTML = '<span class="btn-icon">⏳</span>Conectando...';
+            
+            try {
+                if (!navigator.bluetooth) {
+                    throw new Error('Bluetooth no soportado en este navegador.');
+                }
+                
+                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: [BLUETOOTH_SERVICE_UUID] }],
+                    optionalServices: [BLUETOOTH_SERVICE_UUID]
+                });
+
+                const server = await bluetoothDevice.gatt.connect();
+                const service = await server.getPrimaryService(BLUETOOTH_SERVICE_UUID);
+                bluetoothCharacteristic = await service.getCharacteristic(BLUETOOTH_CHARACTERISTIC_UUID);
+
+                bluetoothDevice.addEventListener('gattserverdisconnected', onBluetoothDisconnected);
+
+                updateStatusDisplay('Conectado', true);
+                playRobotSound('chirp');
+                console.log('Conectado a:', bluetoothDevice.name);
+                
+                localStorage.setItem('looi_bluetooth_connected', 'true');
+                localStorage.setItem('looi_bluetooth_device_name', bluetoothDevice.name);
+                localStorage.setItem('looi_selected_mode', 'robot'); 
+
+                proceedToChatbotScreen('robot', true, bluetoothDevice.name);
+                
+            } catch (error) {
+                console.error('Error de conexión Bluetooth:', error);
+                updateStatusDisplay('Error: ' + error.message, false);
+                playRobotSound('beep');
+                bluetoothConnectBtn.innerHTML = '<span class="btn-icon">🔗</span>Reintentar Conexión';
+            }
+        });
+
+        bluetoothScanBtn.addEventListener('click', () => {
+            bluetoothScanBtn.disabled = true;
+            bluetoothScanBtn.innerHTML = '<span class="btn-icon">⏳</span>Escaneando...';
+            bluetoothStatusText.textContent = 'Escaneando dispositivos...';
+            bluetoothDot.className = 'status-dot connecting';
+            
+            setTimeout(() => {
+                deviceList.classList.add('visible');
+                displayMockDevices(); 
+                bluetoothScanBtn.disabled = false;
+                bluetoothScanBtn.innerHTML = '<span class="btn-icon">📡</span>Escanear Nuevamente';
+                bluetoothStatusText.textContent = 'Dispositivos encontrados (selecciona uno)';
+                bluetoothDot.className = 'status-dot connected';
+            }, 2000);
+        });
+
+        bluetoothSkipBtn.addEventListener('click', () => {
+            selectedMode = 'pc'; 
+            localStorage.setItem('looi_selected_mode', 'pc');
+            localStorage.removeItem('looi_bluetooth_connected'); 
+            localStorage.removeItem('looi_bluetooth_device_name');
+            
+            proceedToChatbotScreen('pc', false);
+        });
+
+        function onBluetoothDisconnected() {
+            console.log('Dispositivo Bluetooth desconectado');
+            localStorage.removeItem('looi_bluetooth_connected'); 
+            localStorage.removeItem('looi_bluetooth_device_name');
+        }
+
+        function displayMockDevices() {
+            const mockDevices = [
+                { name: 'LOOI Robot #1', id: 'AA:BB:CC:DD:EE:FF', signal: 'Fuerte' },
+                { name: 'Arduino Robot', id: 'FF:EE:DD:CC:BB:AA', signal: 'Media' },
+                { name: 'ESP32 Device', id: '11:22:33:44:55:66', signal: 'Débil' }
+            ];
+            
+            devicesContainer.innerHTML = '';
+            
+            mockDevices.forEach(device => {
+                const deviceElement = document.createElement('div');
+                deviceElement.className = 'device-item';
+                deviceElement.innerHTML = `
+                    <div class="device-info">
+                        <div class="device-name">${device.name}</div>
+                        <div class="device-id">${device.id}</div>
+                    </div>
+                    <div class="device-signal">📶 ${device.signal}</div>
+                `;
+                
+                deviceElement.addEventListener('click', () => {
+                    console.log(`Simulando conexión a ${device.name}`);
+                    localStorage.setItem('looi_bluetooth_connected', 'true');
+                    localStorage.setItem('looi_bluetooth_device_name', device.name);
+                    localStorage.setItem('looi_selected_mode', 'robot');
+                    proceedToChatbotScreen('robot', true, device.name);
+                });
+                
+                devicesContainer.appendChild(deviceElement);
+            });
+        }
+
+        // --- Inicialización de main.html ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+            loadVoices(); 
+            
+            startLoadingSequence();
+
+            adjustThemeByTime();
+            setInterval(adjustThemeByTime, 3600000); 
+        });
+    </script>
+</body>
+</html>

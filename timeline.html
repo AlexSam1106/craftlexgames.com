@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Línea de Tiempo: Movimientos Literarios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(139, 69, 19, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(218, 165, 32, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(160, 82, 45, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 0% 100%, rgba(205, 133, 63, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 100%, rgba(188, 143, 143, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 0% 0%, rgba(210, 180, 140, 0.3) 0%, transparent 50%),
+                linear-gradient(135deg, #8B4513 0%, #CD853F 25%, #DAA520 50%, #D2691E 75%, #A0522D 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-opacity='0.03'%3E%3Cpolygon fill='%23000' points='50 0 60 40 100 50 60 60 50 100 40 60 0 50 40 40'/%3E%3C/g%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill-opacity='0.02'%3E%3Ccircle fill='%23000' cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 100px 100px, 60px 60px;
+            background-position: 0 0, 30px 30px;
+            pointer-events: none;
+            z-index: -1;
+            animation: backgroundFloat 20s ease-in-out infinite;
+        }
+        
+        @keyframes backgroundFloat {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            25% { transform: translateY(-10px) translateX(5px); }
+            50% { transform: translateY(-5px) translateX(-5px); }
+            75% { transform: translateY(-15px) translateX(3px); }
+        }
+        
+        .timeline-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(218, 165, 32, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(205, 133, 63, 0.1) 0%, transparent 50%);
+            animation: rotate 30s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .timeline-container > * {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(to bottom, 
+                #8B4513 0%, 
+                #CD853F 10%, 
+                #DAA520 20%, 
+                #D2691E 30%, 
+                #A0522D 40%, 
+                #BC8F8F 50%, 
+                #DEB887 60%, 
+                #F4A460 70%, 
+                #D2B48C 80%, 
+                #BDB76B 90%, 
+                #8B7355 100%);
+            transform: translateX(-50%);
+            border-radius: 3px;
+            box-shadow: 
+                0 0 20px rgba(139, 69, 19, 0.3),
+                inset 0 0 10px rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+        
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateX(-50%);
+            border-radius: 1px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        .timeline-item:nth-child(even) {
+            animation-delay: 0.2s;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            animation-delay: 0.1s;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            top: 60px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, #DAA520, #CD853F, #D2691E);
+            border: 5px solid white;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 
+                0 4px 15px rgba(218, 165, 32, 0.4),
+                0 0 0 3px rgba(218, 165, 32, 0.2),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            z-index: 10;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .timeline-dot::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .timeline-dot:hover {
+            transform: translateX(-50%) scale(1.4);
+            box-shadow: 
+                0 8px 25px rgba(218, 165, 32, 0.6),
+                0 0 0 5px rgba(218, 165, 32, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4);
+        }
+        
+        .timeline-content {
+            width: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(139, 69, 19, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(160, 82, 45, 0.02) 0%, transparent 50%),
+                linear-gradient(145deg, #F5F5DC, #FAF0E6);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6),
+                0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(218, 165, 32, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+        
+        .timeline-content::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill-opacity='0.03' fill='%23654321'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3Ccircle cx='10' cy='10' r='0.5'/%3E%3Ccircle cx='50' cy='50' r='0.5'/%3E%3Ccircle cx='10' cy='50' r='0.5'/%3E%3Ccircle cx='50' cy='10' r='0.5'/%3E%3C/g%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-opacity='0.02' fill='%238B4513'%3E%3Cpath d='M0 0h20v20H0V0zm20 20h20v20H20V20z'/%3E%3C/g%3E%3C/svg%3E");
+            background-size: 60px 60px, 40px 40px;
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .timeline-content > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .timeline-content:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                0 0 20px rgba(218, 165, 32, 0.1);
+            border-color: rgba(218, 165, 32, 0.4);
+        }
+        
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-content {
+            margin-left: auto;
+            margin-right: 5%;
+        }
+        
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            left: -10px;
+            border-width: 10px 10px 10px 0;
+            border-color: transparent #f8fafc transparent transparent;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-left: 5%;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content::before {
+            right: -10px;
+            border-width: 10px 0 10px 10px;
+            border-color: transparent transparent transparent #f8fafc;
+        }
+        
+        .movement-title {
+            background: linear-gradient(45deg, #8B4513, #CD853F, #DAA520, #D2691E);
+            background-size: 300% 300%;
+            animation: gradientShift 3s ease infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .movement-dates {
+            color: #654321;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.15), rgba(205, 133, 63, 0.15));
+            border-radius: 25px;
+            display: inline-block;
+            border: 2px solid rgba(218, 165, 32, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .movement-dates::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .section-title {
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .characteristic-list {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0;
+        }
+        
+        .characteristic-list li {
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #475569;
+            position: relative;
+            padding-left: 1rem;
+        }
+        
+        .characteristic-list li::before {
+            content: '•';
+            color: #3b82f6;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .authors-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.3rem;
+            margin-top: 0.5rem;
+        }
+        
+        .author-work {
+            background: linear-gradient(135deg, rgba(250, 240, 230, 0.9), rgba(245, 245, 220, 0.8));
+            padding: 0.6rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #5D4037;
+            border-left: 4px solid;
+            border-image: linear-gradient(45deg, #DAA520, #CD853F) 1;
+            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(139, 69, 19, 0.08);
+        }
+        
+        .author-work:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .author-work::before {
+            content: '📚';
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+        
+        .image-placeholder {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border-radius: 12px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #d1d5db;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .image-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmerImage 3s infinite;
+        }
+        
+        @keyframes shimmerImage {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .image-placeholder-text {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            text-align: center;
+            z-index: 1;
+            font-weight: 500;
+        }
+        
+        .period-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 1rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .period-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .floating-image {
+            position: absolute;
+            width: 150px;
+            height: 100px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            object-fit: cover;
+        }
+        
+        .floating-image:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+        
+        .image-placeholder-float {
+            position: absolute;
+            width: 150px;
+            height: 100px;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #d1d5db;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .image-placeholder-float:hover {
+            transform: scale(1.05);
+            border-color: #3b82f6;
+        }
+        
+        .placeholder-text-float {
+            color: #9ca3af;
+            font-size: 0.7rem;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        
+        /* Eliminar posiciones específicas para imágenes flotantes */
+        .timeline-item .floating-image,
+        .timeline-item .image-placeholder-float {
+            display: none;
+        }
+        
+        @media (max-width: 1200px) {
+            .floating-image,
+            .image-placeholder-float {
+                display: none;
+            }
+        }
+        
+        .events-text {
+            background: linear-gradient(135deg, rgba(160, 82, 45, 0.15), rgba(188, 143, 143, 0.15));
+            padding: 1rem 1.2rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            color: #5D4037;
+            margin: 0.8rem 0;
+            border-left: 4px solid #A0522D;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(160, 82, 45, 0.1);
+        }
+        
+        .events-text::before {
+            content: '⚡';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 1.2rem;
+            opacity: 0.6;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline-line {
+                left: 30px;
+            }
+            
+            .timeline-dot {
+                left: 30px;
+            }
+            
+            .timeline-content {
+                width: calc(100% - 80px);
+                margin-left: 60px !important;
+                margin-right: 0 !important;
+            }
+            
+            .timeline-content::before {
+                left: -10px !important;
+                right: auto !important;
+                border-width: 10px 10px 10px 0 !important;
+                border-color: transparent #f8fafc transparent transparent !important;
+            }
+            
+            .movement-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen py-8 px-4">
+        <div class="timeline-container max-w-6xl mx-auto p-8">
+            <header class="text-center mb-16">
+                <h1 class="text-6xl font-black bg-gradient-to-r from-yellow-700 via-yellow-600 to-yellow-500 bg-clip-text text-transparent mb-6 relative">
+                    📜 Línea de Tiempo Literaria 🏺
+                    <div class="absolute -top-2 -right-2 w-8 h-8 bg-yellow-600 rounded-full opacity-70 animate-ping"></div>
+                    <div class="absolute -bottom-1 -left-1 w-6 h-6 bg-amber-600 rounded-full opacity-60 animate-bounce"></div>
+                </h1>
+                <p class="text-2xl text-amber-800 font-medium mb-4">Un Viaje a Través de los Siglos Literarios 📚</p>
+                <div class="flex justify-center items-center space-x-4 mb-4">
+                    <div class="w-32 h-2 bg-gradient-to-r from-yellow-700 via-amber-600 to-yellow-500 rounded-full"></div>
+                    <span class="text-4xl">📖</span>
+                    <div class="w-32 h-2 bg-gradient-to-r from-yellow-500 via-amber-600 to-yellow-700 rounded-full"></div>
+                </div>
+                <div class="flex justify-center space-x-6 text-3xl">
+                    <span class="animate-bounce">🏛️</span>
+                    <span class="animate-bounce" style="animation-delay: 0.1s">🏰</span>
+                    <span class="animate-bounce" style="animation-delay: 0.2s">🎭</span>
+                    <span class="animate-bounce" style="animation-delay: 0.3s">🌹</span>
+                    <span class="animate-bounce" style="animation-delay: 0.4s">🎨</span>
+                    <span class="animate-bounce" style="animation-delay: 0.5s">🚀</span>
+                </div>
+            </header>
+
+            <div class="relative">
+                <div class="timeline-line"></div>
+                
+                <!-- Fila 1: Clasicismo y Edad Media -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Clasicismo</h3>
+                        <span class="movement-dates">Siglo VIII a.C. - Siglo V d.C.</span>
+                        
+                        <div class="events-text">
+                            Fundación de las polis griegas, Imperio Romano, desarrollo de la filosofía y el teatro.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Búsqueda de la perfección estética y equilibrio</li>
+                            <li>Imitación de la naturaleza como inspiración</li>
+                            <li>Importancia de la razón y la mesura</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Homero: La Ilíada, La Odisea</div>
+                            <div class="author-work">Sófocles: Edipo Rey, Antígona</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Edad Media</h3>
+                        <span class="movement-dates">Siglo V - Siglo XV</span>
+                        
+                        <div class="events-text">
+                            Caída del Imperio Romano, expansión del cristianismo, feudalismo, Cruzadas.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Teocentrismo: Dios como centro del universo</li>
+                            <li>Literatura didáctica y moralizante</li>
+                            <li>Tradición oral y anonimato</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Anónimo: Cantar de mio Cid</div>
+                            <div class="author-work">Dante: La Divina Comedia</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 2: Renacimiento y Barroco -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Renacimiento</h3>
+                        <span class="movement-dates">Siglo XIV - Siglo XVI</span>
+                        
+                        <div class="events-text">
+                            Invención de la imprenta, descubrimientos geográficos, Reforma Protestante.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Antropocentrismo y humanismo</li>
+                            <li>Recuperación de la cultura clásica</li>
+                            <li>Valoración del individuo y la razón</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Shakespeare: Hamlet, Romeo y Julieta</div>
+                            <div class="author-work">Cervantes: Don Quijote</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Barroco</h3>
+                        <span class="movement-dates">Siglo XVII</span>
+                        
+                        <div class="events-text">
+                            Contrarreforma, Guerra de los Treinta Años, monarquías absolutas.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Desengaño y pesimismo vital</li>
+                            <li>Contraste y exageración</li>
+                            <li>Complejidad y artificio lingüístico</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Góngora: Soledades</div>
+                            <div class="author-work">Calderón: La vida es sueño</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 3: Neoclasicismo y Romanticismo -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Neoclasicismo</h3>
+                        <span class="movement-dates">Siglo XVIII</span>
+                        
+                        <div class="events-text">
+                            La Ilustración, Revolución Francesa, Revolución Industrial.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Primacía de la razón y el orden</li>
+                            <li>Retorno a los clásicos grecolatinos</li>
+                            <li>Literatura didáctica y moral</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Voltaire: Cándido</div>
+                            <div class="author-work">Moratín: El sí de las niñas</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Romanticismo</h3>
+                        <span class="movement-dates">Finales XVIII - Mediados XIX</span>
+                        
+                        <div class="events-text">
+                            Guerras Napoleónicas, independencias americanas, Revolución Industrial.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Sentimiento sobre la razón</li>
+                            <li>Subjetivismo e individualismo</li>
+                            <li>Naturaleza salvaje y sublime</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Goethe: Fausto</div>
+                            <div class="author-work">Bécquer: Rimas y Leyendas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 4: Realismo y Modernismo -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Realismo</h3>
+                        <span class="movement-dates">Mediados XIX - Principios XX</span>
+                        
+                        <div class="events-text">
+                            Consolidación burguesa, desarrollo científico, crecimiento urbano.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Objetividad y verosimilitud</li>
+                            <li>Observación detallada</li>
+                            <li>Crítica social y denuncia</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Balzac: La Comedia Humana</div>
+                            <div class="author-work">Galdós: Fortunata y Jacinta</div>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Modernismo</h3>
+                        <span class="movement-dates">Finales XIX - Primeras décadas XX</span>
+                        
+                        <div class="events-text">
+                            Crisis del 98, búsqueda de identidad hispanoamericana.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Esteticismo: "el arte por el arte"</li>
+                            <li>Sincretismo cultural</li>
+                            <li>Exotismo y evasión</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Rubén Darío: Azul, Prosas profanas</div>
+                            <div class="author-work">José Martí: Versos sencillos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fila 5: Vanguardismo (centrado) -->
+                <div class="timeline-item" style="grid-template-columns: 1fr; justify-items: center;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content" style="max-width: 500px;">
+                        <h3 class="movement-title">Vanguardismo</h3>
+                        <span class="movement-dates">Primeras décadas del XX</span>
+                        
+                        <div class="events-text">
+                            Primera Guerra Mundial, Revolución Rusa, nuevas tecnologías.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Ruptura con la tradición</li>
+                            <li>Experimentación formal</li>
+                            <li>Originalidad y provocación</li>
+                            <li>Exploración del inconsciente</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Huidobro: Altazor (Creacionismo)</div>
+                            <div class="author-work">Lorca: Poeta en Nueva York</div>
+                            <div class="author-work">Joyce: Ulises</div>
+                        </div>
+                    </div>
+                </div>        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Sentimiento sobre la razón</li>
+                            <li>Subjetivismo e individualismo</li>
+                            <li>Naturaleza salvaje y sublime</li>
+                            <li>Libertad y rebeldía</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Goethe: Fausto</div>
+                            <div class="author-work">Bécquer: Rimas y Leyendas</div>
+                            <div class="author-work">Victor Hugo: Los Miserables</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Imagen flotante - Reemplaza con tu URL -->
+                    <div class="image-placeholder-float">
+                        <div class="placeholder-text-float">
+                            🌹<br>Romanticismo<br>
+                            <small>Cambia por:<br>&lt;img src="URL"<br>class="floating-image"&gt;</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Realismo</h3>
+                        <span class="movement-dates">Mediados XIX - Principios XX</span>
+                        
+                        <div class="events-text">
+                            Consolidación burguesa, desarrollo científico, crecimiento urbano.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Objetividad y verosimilitud</li>
+                            <li>Observación detallada</li>
+                            <li>Crítica social y denuncia</li>
+                            <li>Psicología de personajes</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Balzac: La Comedia Humana</div>
+                            <div class="author-work">Galdós: Fortunata y Jacinta</div>
+                            <div class="author-work">Dostoievski: Crimen y Castigo</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Imagen flotante - Reemplaza con tu URL -->
+                    <div class="image-placeholder-float">
+                        <div class="placeholder-text-float">
+                            🔍<br>Realismo<br>
+                            <small>Cambia por:<br>&lt;img src="URL"<br>class="floating-image"&gt;</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Modernismo</h3>
+                        <span class="movement-dates">Finales XIX - Primeras décadas XX</span>
+                        
+                        <div class="events-text">
+                            Crisis del 98, búsqueda de identidad hispanoamericana.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Esteticismo: "el arte por el arte"</li>
+                            <li>Sincretismo cultural</li>
+                            <li>Exotismo y evasión</li>
+                            <li>Renovación del lenguaje</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Rubén Darío: Azul, Prosas profanas</div>
+                            <div class="author-work">José Martí: Versos sencillos</div>
+                            <div class="author-work">Juan Ramón Jiménez: Platero y yo</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Imagen flotante - Reemplaza con tu URL -->
+                    <div class="image-placeholder-float">
+                        <div class="placeholder-text-float">
+                            🦢<br>Modernismo<br>
+                            <small>Cambia por:<br>&lt;img src="URL"<br>class="floating-image"&gt;</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Vanguardismo</h3>
+                        <span class="movement-dates">Primeras décadas del XX</span>
+                        
+                        <div class="events-text">
+                            Primera Guerra Mundial, Revolución Rusa, nuevas tecnologías.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Ruptura con la tradición</li>
+                            <li>Experimentación formal</li>
+                            <li>Originalidad y provocación</li>
+                            <li>Exploración del inconsciente</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Huidobro: Altazor (Creacionismo)</div>
+                            <div class="author-work">Lorca: Poeta en Nueva York</div>
+                            <div class="author-work">Joyce: Ulises</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Imagen flotante - Reemplaza con tu URL -->
+                    <div class="image-placeholder-float">
+                        <div class="placeholder-text-float">
+                            🚀<br>Vanguardismo<br>
+                            <small>Cambia por:<br>&lt;img src="URL"<br>class="floating-image"&gt;</small>
+                        </div>
+                    </div>
+                </div>
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Sentimiento sobre la razón</li>
+                            <li>Subjetivismo e individualismo</li>
+                            <li>Naturaleza salvaje y sublime</li>
+                            <li>Libertad y rebeldía</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Goethe: Fausto</div>
+                            <div class="author-work">Bécquer: Rimas y Leyendas</div>
+                            <div class="author-work">Victor Hugo: Los Miserables</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Realismo</h3>
+                        <span class="movement-dates">Mediados XIX - Principios XX</span>
+                        
+                        <!-- Espacio para imagen - Reemplaza src con tu URL -->
+                        <div class="image-placeholder">
+                            <div class="image-placeholder-text">
+                                🔍 Imagen del Realismo<br>
+                                <small>Reemplaza con: src="URL_DE_TU_IMAGEN"</small>
+                            </div>
+                        </div>
+                        
+                        <div class="events-text">
+                            Consolidación burguesa, desarrollo científico, crecimiento urbano.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Objetividad y verosimilitud</li>
+                            <li>Observación detallada</li>
+                            <li>Crítica social y denuncia</li>
+                            <li>Psicología de personajes</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Balzac: La Comedia Humana</div>
+                            <div class="author-work">Galdós: Fortunata y Jacinta</div>
+                            <div class="author-work">Dostoievski: Crimen y Castigo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Modernismo</h3>
+                        <span class="movement-dates">Finales XIX - Primeras décadas XX</span>
+                        
+                        <!-- Espacio para imagen - Reemplaza src con tu URL -->
+                        <div class="image-placeholder">
+                            <div class="image-placeholder-text">
+                                🦢 Imagen del Modernismo<br>
+                                <small>Reemplaza con: src="URL_DE_TU_IMAGEN"</small>
+                            </div>
+                        </div>
+                        
+                        <div class="events-text">
+                            Crisis del 98, búsqueda de identidad hispanoamericana.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Esteticismo: "el arte por el arte"</li>
+                            <li>Sincretismo cultural</li>
+                            <li>Exotismo y evasión</li>
+                            <li>Renovación del lenguaje</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Rubén Darío: Azul, Prosas profanas</div>
+                            <div class="author-work">José Martí: Versos sencillos</div>
+                            <div class="author-work">Juan Ramón Jiménez: Platero y yo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <h3 class="movement-title">Vanguardismo</h3>
+                        <span class="movement-dates">Primeras décadas del XX</span>
+                        
+                        <!-- Espacio para imagen - Reemplaza src con tu URL -->
+                        <div class="image-placeholder">
+                            <div class="image-placeholder-text">
+                                🚀 Imagen del Vanguardismo<br>
+                                <small>Reemplaza con: src="URL_DE_TU_IMAGEN"</small>
+                            </div>
+                        </div>
+                        
+                        <div class="events-text">
+                            Primera Guerra Mundial, Revolución Rusa, nuevas tecnologías.
+                        </div>
+                        
+                        <div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Ruptura con la tradición</li>
+                            <li>Experimentación formal</li>
+                            <li>Originalidad y provocación</li>
+                            <li>Exploración del inconsciente</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Huidobro: Altazor (Creacionismo)</div>
+                            <div class="author-work">Lorca: Poeta en Nueva York</div>
+                            <div class="author-work">Joyce: Ulises</div>
+                        </div>
+                    </div>
+                </div><div class="section-title">Características</div>
+                        <ul class="characteristic-list">
+                            <li>Ruptura con la tradición</li>
+                            <li>Experimentación formal</li>
+                            <li>Originalidad y provocación</li>
+                            <li>Exploración del inconsciente</li>
+                        </ul>
+                        
+                        <div class="section-title">Autores Destacados</div>
+                        <div class="authors-grid">
+                            <div class="author-work">Huidobro: Altazor (Creacionismo)</div>
+                            <div class="author-work">Lorca: Poeta en Nueva York</div>
+                            <div class="author-work">Joyce: Ulises</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

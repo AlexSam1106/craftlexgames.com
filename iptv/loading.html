@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargando Contenido - StreamVision</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #2d3748 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .loader-container {
+            width: 80%;
+            max-width: 500px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 2.8rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #e8eaf6, #c5cae9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 20px rgba(200, 200, 255, 0.2);
+            margin-bottom: 20px;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(200, 200, 255, 0.1); }
+            to { text-shadow: 0 0 20px rgba(200, 200, 255, 0.3); }
+        }
+
+        .loading-message {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: rgba(255, 255, 255, 0.8);
+            min-height: 2em; /* Para evitar saltos al cambiar el texto */
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+            border-radius: 5px;
+            transition: width 0.5s ease-out; /* Suaviza el movimiento de la barra */
+        }
+
+        .spinner {
+            border: 4px solid rgba(232, 234, 246, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #45b7d1;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-display {
+            background-color: rgba(234, 67, 53, 0.2);
+            border: 1px solid rgba(234, 67, 53, 0.5);
+            color: #ffcccc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none; /* Oculto por defecto */
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container">
+        <h1 class="logo">StreamVision</h1>
+        <div class="spinner"></div>
+        <p class="loading-message" id="loadingMessage">Preparando la magia del streaming...</p>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="error-display" id="errorDisplay">
+            <p>¡Oh no! Parece que algo salió mal.</p>
+            <p id="errorMessageText"></p>
+            <p>Por favor, revisa tus credenciales o intenta de nuevo más tarde.</p>
+        </div>
+    </div>
+
+    <script>
+        const M3U_URL_KEY = 'iptvM3uUrl';
+        const STREAM1_CREDS_KEY = 'stream1Creds';
+        const XC_CREDS_KEY = 'xcCreds';
+        const PARSED_CONTENT_KEY = 'parsedIptvContent'; 
+
+        const LOCAL_CORS_PROXY_URL = 'https://iptv-server-render.onrender.com/proxy?url='; 
+
+        // Define el umbral de frescura de los datos (ej: 24 horas en milisegundos)
+        const STALE_THRESHOLD = 24 * 60 * 60 * 1000; // 24 horas
+
+        let connectionType = '';
+        let connectionDetails = {};
+        let allItems = []; // This will be the flat list of all items (channels, movies, episodes) after parsing
+        let categorizedItems = {}; // This will hold channels, movies, and grouped series
+
+        const loadingMessageElem = document.getElementById('loadingMessage');
+        const progressBarElem = document.getElementById('progressBar');
+        const errorDisplayElem = document.getElementById('errorDisplay');
+        const errorMessageTextElem = document.getElementById('errorMessageText');
+
+        const friendlyMessages = [
+            "Afinando los canales para ti...",
+            "Organizando tus películas favoritas...",
+            "Preparando las mejores series, ¡casi listo!",
+            "Conectando con el universo del entretenimiento...",
+            "Optimizando tu experiencia de streaming...",
+            "Desempaquetando la diversión, ¡no te vayas!",
+            "Ya estamos trayendo todo el contenido, paciencia...",
+            "¡Cargando la aventura! Un momento más...",
+            "Calculando la mejor ruta para tus streams...",
+            "Cargando miles de opciones para ti..."
+        ];
+        let messageInterval;
+
+        // --- IndexedDB Helper Functions ---
+        const DB_NAME = 'StreamVisionDB';
+        const STORE_NAME = 'iptvContent';
+        const DB_VERSION = 1;
+
+        /**
+         * Opens the IndexedDB database.
+         * @returns {Promise<IDBDatabase>} A promise that resolves with the database object.
+         */
+        function openStreamVisionDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' }); 
+                    }
+                };
+
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+
+                request.onerror = (event) => {
+                    reject(`IndexedDB error: ${event.target.errorCode}`);
+                };
+            });
+        }
+
+        /**
+         * Saves content to IndexedDB.
+         * @param {Object} content The content object to save.
+         * @param {string} key The key to store the content under.
+         * @returns {Promise<void>} A promise that resolves when content is saved.
+         */
+        async function saveContentToIndexedDB(content, key = PARSED_CONTENT_KEY) {
+            const db = await openStreamVisionDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                
+                // Store content along with a timestamp
+                const dataToStore = { id: key, data: content, timestamp: Date.now() };
+
+                const request = store.put(dataToStore); 
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = (event) => {
+                    reject(`Error saving to IndexedDB: ${event.target.error}`);
+                };
+            });
+        }
+
+        /**
+         * Loads content from IndexedDB.
+         * @param {string} key The key of the content to load.
+         * @returns {Promise<Object|undefined>} A promise that resolves with the content object and its timestamp, or undefined if not found.
+         */
+        async function loadContentFromIndexedDB(key = PARSED_CONTENT_KEY) {
+            const db = await openStreamVisionDB();
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.get(key);
+
+                request.onsuccess = () => {
+                    resolve(request.result); // Returns the whole object { id, data, timestamp }
+                };
+
+                request.onerror = (event) => {
+                    reject(`Error loading from IndexedDB: ${event.target.error}`);
+                };
+            });
+        }
+
+        // --- End IndexedDB Helper Functions ---
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            startFriendlyMessages();
+            const params = new URLSearchParams(window.location.search);
+            connectionType = params.get('type') || '';
+            connectionDetails = {
+                url: params.get('url') || '',
+                user: params.get('user') || '',
+                pass: params.get('pass') || ''
+            };
+
+            if (!connectionType || !connectionDetails.url) {
+                displayError("No se encontraron credenciales de conexión válidas. Redirigiendo.");
+                setTimeout(() => window.location.href = 'index.html', 3000);
+                return;
+            }
+
+            // Try to load from IndexedDB first
+            try {
+                const storedData = await loadContentFromIndexedDB(PARSED_CONTENT_KEY);
+                if (storedData && storedData.data && (Date.now() - storedData.timestamp < STALE_THRESHOLD)) {
+                    // Content is fresh, use it
+                    categorizedItems = storedData.data;
+                    updateProgressBar(100);
+                    stopFriendlyMessages();
+                    loadingMessageElem.textContent = "Contenido fresco cargado. ¡Disfruta de StreamVision!";
+                    console.log("Cargando contenido desde IndexedDB (fresco).");
+                    setTimeout(() => {
+                        window.location.href = `contenido.html`;
+                    }, 1000);
+                    return; // Exit, no need to fetch
+                } else if (storedData && storedData.data) {
+                    console.log("Contenido en IndexedDB está obsoleto, recargando...");
+                    loadingMessageElem.textContent = "Actualizando contenido...";
+                    updateProgressBar(10);
+                } else {
+                    console.log("No se encontró contenido en IndexedDB o está vacío, descargando...");
+                    loadingMessageElem.textContent = "Descargando contenido por primera vez...";
+                    updateProgressBar(10);
+                }
+            } catch (indexedDBError) {
+                console.warn("Error al intentar cargar desde IndexedDB, procederá a descargar:", indexedDBError);
+                loadingMessageElem.textContent = "Error de caché, descargando contenido...";
+                updateProgressBar(10);
+            }
+
+            // If not fresh or not found, proceed with fetching
+            await getAndParseContentInLoading();
+        });
+
+        function startFriendlyMessages() {
+            let messageIndex = 0;
+            loadingMessageElem.textContent = friendlyMessages[messageIndex];
+            messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % friendlyMessages.length;
+                loadingMessageElem.textContent = friendlyMessages[messageIndex];
+            }, 3000);
+        }
+
+        function stopFriendlyMessages() {
+            clearInterval(messageInterval);
+        }
+
+        function updateProgressBar(progress) {
+            progressBarElem.style.width = `${progress}%`;
+        }
+
+        function displayError(message) {
+            stopFriendlyMessages();
+            errorDisplayElem.style.display = 'block';
+            errorMessageTextElem.textContent = message;
+            loadingMessageElem.textContent = "¡Carga Fallida!";
+            progressBarElem.style.width = '0%';
+            document.querySelector('.spinner').style.display = 'none';
+        }
+
+        async function getAndParseContentInLoading() {
+            updateProgressBar(5); // Reset progress for new fetch
+            try {
+                let content = '';
+                let fetchUrl = '';
+                let originalApiUrl = '';
+
+                if (connectionType === 'm3u') {
+                    originalApiUrl = connectionDetails.url;
+                    fetchUrl = originalApiUrl;
+                } else if (connectionType === 'stream1') {
+                    originalApiUrl = `${connectionDetails.url}/get.php?username=${connectionDetails.user}&password=${connectionDetails.pass}&type=m3u_plus&output=ts`;
+                    fetchUrl = originalApiUrl;
+                } else if (connectionType === 'xc') {
+                    originalApiUrl = `${connectionDetails.url}/player_api.php?username=${connectionDetails.user}&password=${connectionDetails.pass}&type=m3u_plus&output=ts`;
+                    fetchUrl = originalApiUrl;
+                }
+
+                if (originalApiUrl.startsWith('http://') && window.location.protocol === 'https:') {
+                    fetchUrl = LOCAL_CORS_PROXY_URL + encodeURIComponent(originalApiUrl);
+                }
+                
+                console.log('Fetching content from:', fetchUrl);
+                loadingMessageElem.textContent = "Conectando con el servidor IPTV...";
+                updateProgressBar(20);
+
+                const response = await fetch(fetchUrl);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Error HTTP: ${response.status} - ${errorText.substring(0, 200)}...`);
+                }
+                updateProgressBar(50);
+                loadingMessageElem.textContent = "Descargando la lista de contenido...";
+
+                content = await response.text();
+                updateProgressBar(70);
+                loadingMessageElem.textContent = "Analizando el contenido (esto puede tardar un poco con listas grandes)...";
+
+                allItems = parseM3U(content); 
+                
+                if (allItems.length === 0) {
+                    throw new Error('No se encontraron elementos en la lista M3U. La lista podría estar vacía o el formato es incorrecto.');
+                }
+                
+                categorizeItems(allItems); // This will now populate categorizedItems with grouped series
+                updateProgressBar(85); 
+
+                loadingMessageElem.textContent = "Guardando contenido para una carga más rápida...";
+                await saveContentToIndexedDB(categorizedItems);
+                localStorage.setItem('connectionType', connectionType); 
+                localStorage.setItem('connectionDetails', JSON.stringify(connectionDetails)); 
+
+                updateProgressBar(100);
+                stopFriendlyMessages();
+                loadingMessageElem.textContent = "¡Carga completa! Disfruta de StreamVision.";
+
+                setTimeout(() => {
+                    window.location.href = `contenido.html`;
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error al cargar o parsear contenido:', error);
+                displayError(`"${error.message}". Probablemente el servidor IPTV no responde, las credenciales son incorrectas o el formato de la lista no es compatible.`);
+                setTimeout(() => window.location.href = 'index.html', 5000);
+            }
+        }
+
+        // --- parseM3U function (IMPROVED for categorization and rawUrlLine) ---
+        function parseM3U(content) {
+            const lines = content.split('\n');
+            const parsedItems = [];
+            let currentItem = {};
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                if (line.startsWith('#EXTINF:')) {
+                    const tvgIdMatch = line.match(/tvg-id="([^"]+)"/);
+                    const tvgNameMatch = line.match(/tvg-name="([^"]+)"/);
+                    const tvgLogoMatch = line.match(/tvg-logo="([^"]+)"/);
+                    const groupTitleMatch = line.match(/group-title="([^"]+)"/);
+                    const channelNameAfterCommaMatch = line.match(/,(.+)$/);
+                    
+                    // New: Extract series-specific attributes
+                    const seriesIdMatch = line.match(/series_id="([^"]+)"/);
+                    const seasonNumMatch = line.match(/season-num="([^"]+)"/);
+                    const episodeNumMatch = line.match(/episode-num="([^"]+)"/);
+                    const tvgRecMatch = line.match(/tvg-rec="([^"]+)"/); // Sometimes used for VOD/Series
+
+                    let type = 'channel'; // Default type
+                    
+                    // Heuristics for type detection (order matters)
+                    // 1. Check for series/episode specific attributes
+                    if (seriesIdMatch || seasonNumMatch || episodeNumMatch) {
+                        type = 'episode'; // Mark as episode, will be grouped into series later
+                    } else if (groupTitleMatch) {
+                        // 2. Check group-title for common movie/series keywords
+                        const group = groupTitleMatch[1].toLowerCase();
+                        if (group.includes('movie') || group.includes('pelicula') || group.includes('vod') || group.includes('film')) {
+                            type = 'movie';
+                        } else if (group.includes('serie') || group.includes('series') || group.includes('show')) {
+                            type = 'series_placeholder'; // Temporary type for series main entry if no episode info
+                        }
+                    }
+                    // URL heuristics will be checked on the next line
+
+                    currentItem = {
+                        id: tvgIdMatch ? tvgIdMatch[1] : `item_${parsedItems.length}_${Date.now()}`,
+                        name: tvgNameMatch ? tvgNameMatch[1] : (channelNameAfterCommaMatch ? channelNameAfterCommaMatch[1].trim() : 'Contenido Desconocido'),
+                        logo: tvgLogoMatch ? tvgLogoMatch[1] : '',
+                        group: groupTitleMatch ? groupTitleMatch[1] : 'Sin Categoría',
+                        type: type,
+                        rawUrlLine: '', // Will be filled in the next line
+                        // Series specific data
+                        seriesId: seriesIdMatch ? seriesIdMatch[1] : null,
+                        seasonNum: seasonNumMatch ? parseInt(seasonNumMatch[1]) : null,
+                        episodeNum: episodeNumMatch ? parseInt(episodeNumMatch[1]) : null,
+                        tvgRec: tvgRecMatch ? tvgRecMatch[1] : null // Keep this, might be useful for some VOD
+                    };
+                } else if (line && !line.startsWith('#') && currentItem.name) {
+                    // This is the URL line, save it directly for all items
+                    currentItem.rawUrlLine = line; 
+                    
+                    // Further heuristic: refine type based on URL if not already determined
+                    if (currentItem.type === 'channel' || currentItem.type === 'series_placeholder') { 
+                        const lowerCaseUrl = line.toLowerCase();
+                        if (lowerCaseUrl.includes('/movie/') || lowerCaseUrl.includes('/vod/')) {
+                            currentItem.type = 'movie';
+                        } else if (lowerCaseUrl.includes('/series/')) {
+                            // If it's a series URL, and not already an episode, make it a series placeholder
+                            if (currentItem.type !== 'episode') { // Don't override if already identified as episode
+                                currentItem.type = 'series_placeholder';
+                            }
+                        }
+                    }
+
+                    parsedItems.push({...currentItem});
+                    currentItem = {};
+                }
+            }
+            return parsedItems;
+        }
+
+        // --- categorizeItems function (IMPROVED for series grouping) ---
+        function categorizeItems(items) {
+            categorizedItems = {
+                channels: {},
+                movies: {},
+                series: {} // This will store grouped series
+            };
+
+            items.forEach(item => {
+                const category = item.group || 'Otros';
+
+                if (item.type === 'channel') {
+                    if (!categorizedItems.channels[category]) {
+                        categorizedItems.channels[category] = [];
+                    }
+                    categorizedItems.channels[category].push(item);
+                } else if (item.type === 'movie') {
+                    if (!categorizedItems.movies[category]) {
+                        categorizedItems.movies[category] = [];
+                    }
+                    categorizedItems.movies[category].push(item);
+                } else if (item.type === 'episode') {
+                    // Group episodes into series
+                    const seriesName = item.name.split(' S')[0].split(' E')[0].trim(); // Extract series name (e.g., "Show Title")
+                    const seriesId = item.seriesId || seriesName; // Use series_id if available, else seriesName
+
+                    if (!categorizedItems.series[seriesId]) {
+                        categorizedItems.series[seriesId] = {
+                            id: seriesId,
+                            name: seriesName,
+                            logo: item.logo, // Use episode's logo as series logo for now
+                            group: category,
+                            seasons: {} // Seasons will hold arrays of episodes
+                        };
+                    }
+
+                    const seasonKey = item.seasonNum ? `Season ${item.seasonNum}` : 'Season 1'; // Default to Season 1 if no seasonNum
+                    if (!categorizedItems.series[seriesId].seasons[seasonKey]) {
+                        categorizedItems.series[seriesId].seasons[seasonKey] = [];
+                    }
+                    categorizedItems.series[seriesId].seasons[seasonKey].push(item);
+                    // Sort episodes within season by episodeNum
+                    categorizedItems.series[seriesId].seasons[seasonKey].sort((a, b) => (a.episodeNum || 0) - (b.episodeNum || 0));
+
+                } else if (item.type === 'series_placeholder') {
+                    // Handle series main entries if they exist and are not episodes
+                    // This is for cases where the M3U might list series titles separately
+                    const seriesId = item.id || item.name;
+                    if (!categorizedItems.series[seriesId]) {
+                         categorizedItems.series[seriesId] = {
+                            id: seriesId,
+                            name: item.name,
+                            logo: item.logo,
+                            group: category,
+                            seasons: {} // Empty seasons, episodes will be added if found
+                        };
+                    }
+                }
+            });
+
+            // After grouping, convert series object to an array for easier rendering
+            // And ensure seasons are sorted
+            const seriesArray = Object.values(categorizedItems.series).map(series => {
+                const sortedSeasons = {};
+                Object.keys(series.seasons).sort((a, b) => {
+                    const seasonA = parseInt(a.replace('Season ', '')) || 0;
+                    const seasonB = parseInt(b.replace('Season ', '')) || 0;
+                    return seasonA - seasonB;
+                }).forEach(key => {
+                    sortedSeasons[key] = series.seasons[key];
+                });
+                series.seasons = sortedSeasons;
+                return series;
+            });
+            // Sort series alphabetically
+            seriesArray.sort((a, b) => a.name.localeCompare(b.name));
+            categorizedItems.series = seriesArray; // Store as an array now
+        }
+    </script>
+</body>
+</html>

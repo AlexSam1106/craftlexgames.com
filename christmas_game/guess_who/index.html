@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Adivina Quién - Edición Navidad</title>
+    <!-- Tailwind CSS para estructura rápida -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuentes Navideñas y Elegantes -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- ESTILOS VISUALES PREMIUM --- */
+        :root {
+            --card-width: 100%;
+            --card-ratio: 1.4; /* Relación de aspecto vertical */
+            --plastic-red: #d32f2f;
+            --plastic-dark: #8e0000;
+            --gold: #ffd700;
+        }
+
+        body {
+            /* Fondo de fieltro verde oscuro estilo mesa de juego */
+            background-color: #0f380f;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, #0f380f, #051905);
+            background-size: 20px 20px, 100% 100%;
+            font-family: 'Cinzel', serif;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Efecto de Nieve Suave */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: white;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: 0;
+            animation: fall linear forwards;
+            text-shadow: 0 0 5px rgba(255,255,255,0.8);
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(720deg); }
+        }
+
+        /* --- MECÁNICA DE TARJETAS 3D --- */
+        .scene {
+            perspective: 800px; /* Profundidad 3D */
+            height: 140px; /* Altura base para móvil */
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform-origin: bottom center; /* Gira desde la bisagra de abajo */
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efecto rebote */
+            cursor: pointer;
+        }
+
+        /* Estado "Bajado" */
+        .card.is-down {
+            transform: rotateX(-85deg); /* Casi plano contra la mesa */
+        }
+
+        /* Cara de la tarjeta */
+        .card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            
+            /* Diseño del marco de plástico rojo */
+            background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
+            border-radius: 12px 12px 4px 4px;
+            border: 2px solid #ff8a80; /* Brillo borde */
+            border-bottom: none;
+            box-shadow: 
+                inset 0 0 10px rgba(0,0,0,0.3), /* Sombra interna */
+                0 4px 6px rgba(0,0,0,0.4); /* Sombra externa */
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px;
+        }
+
+        /* Brillo plástico superior */
+        .card-face::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+            border-radius: 10px 10px 0 0;
+            pointer-events: none;
+        }
+
+        /* El hueco de la imagen */
+        .image-container {
+            width: 100%;
+            flex-grow: 1;
+            background: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .character-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Placeholder style fix */
+            background-color: #f0f0f0; 
+        }
+
+        /* Etiqueta del nombre */
+        .name-tag {
+            background: #fff;
+            color: #b71c1c;
+            width: 100%;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 2px 0;
+            margin-top: 4px;
+            border-radius: 2px;
+            font-family: sans-serif;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Bisagra (Base fija en la mesa) */
+        .hinge {
+            position: absolute;
+            bottom: -5px;
+            left: 5%;
+            width: 90%;
+            height: 8px;
+            background: #8e0000;
+            border-radius: 4px;
+            z-index: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        /* Ajustes Responsive */
+        @media (min-width: 640px) {
+            .scene { height: 180px; }
+            .name-tag { font-size: 0.9rem; padding: 4px 0; }
+        }
+
+        /* Botón Deluxe */
+        .btn-gold {
+            background: linear-gradient(to bottom, #ffd700, #ffa000);
+            color: #4a3b00;
+            border: 2px solid #ffecb3;
+            box-shadow: 0 4px 0 #b36f00, 0 5px 10px rgba(0,0,0,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+        .btn-gold:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #b36f00, inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Oficial -->
+    <header class="relative z-10 w-full bg-red-900 border-b-4 border-yellow-500 shadow-2xl">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-30 mix-blend-overlay"></div>
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center relative">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-500 p-2 rounded-full shadow-lg border-2 border-yellow-200">
+                    <span class="text-2xl filter drop-shadow">🎅</span>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-3xl font-bold text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-none">
+                        GUESS WHO?
+                    </h1>
+                    <p class="text-xs md:text-sm text-red-200 tracking-widest font-sans opacity-90">EDICIÓN NAVIDEÑA</p>
+                </div>
+            </div>
+            
+            <button onclick="resetGame()" class="btn-gold px-4 py-2 rounded-lg font-bold text-xs md:text-sm flex items-center gap-2">
+                <span>REINICIAR</span>
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+            </button>
+        </div>
+        
+        <!-- Marcador Digital -->
+        <div class="bg-black/40 backdrop-blur-sm py-1 border-t border-red-800">
+            <div class="max-w-6xl mx-auto px-4 flex justify-center text-xs text-yellow-100 font-sans tracking-wider">
+                PERSONAJES DISPONIBLES: <span id="counter" class="ml-2 font-bold text-white">24</span> / 24
+            </div>
+        </div>
+    </header>
+
+    <!-- Tablero de Juego -->
+    <main class="flex-grow relative z-10 p-2 md:p-6 overflow-y-auto">
+        <!-- Rejilla contenedora -->
+        <div id="game-board" class="max-w-6xl mx-auto grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-x-2 gap-y-1 md:gap-x-4 md:gap-y-4">
+            <!-- Las tarjetas se generarán aquí mediante Javascript -->
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-green-200/40 text-xs font-sans relative z-10">
+        <p>Toca una tarjeta para bajarla o levantarla</p>
+    </footer>
+
+    <!-- Script Lógico -->
+    <script>
+        /* =======================================================================
+        INSTRUCCIONES PARA CAMBIAR IMÁGENES:
+        
+        1. Busca la lista "CONFIGURACION_PERSONAJES" abajo.
+        2. Reemplaza las URLs que dicen "https://placehold.co/..." 
+           por los enlaces a tus propias imágenes.
+        3. No borres las comillas "" ni las comas ,
+        
+        EJEMPLO:
+        { name: "Santa", img: "https://imgur.com/mi-foto-santa.jpg" },
+        =======================================================================
+        */
+
+        const CONFIGURACION_PERSONAJES = [
+            { id: 1, name: "Santa Claus", img: "Santa Claus.png" },
+            { id: 2, name: "Señora Noel", img: "Señora Claus.png" },
+            { id: 3, name: "Rodolfo El Reno", img: "Rodolfo el reno.png" },
+            { id: 4, name: "Muñeco de Nieve", img: "Muñeco de Nieve.png" },
+            { id: 5, name: "El Grinch", img: "El Grinch.png" },
+            { id: 6, name: "Elfa Cascabel", img: "Elfa Cascabel.png" },
+            { id: 7, name: "Elfa Juguetes", img: "Elfa de los Juguetes.png" },
+            { id: 8, name: "Hombre de Jengibre", img: "Hombre de Jengibre.png" },
+            { id: 9, name: "Hombre de las Nieves", img: "Hombre de las Nieves.png" },
+            { id: 10, name: "Elfo Alabastro", img: "Elfo Alabastro.png" },
+            { id: 11, name: "Jack Frost", img: "Jack Frost.png" },
+            { id: 12, name: "Krampus", img: "Krampus.png" },
+            { id: 13, name: "Muñeca de Trapo", img: "Muñeca de Trapo.png" },
+            { id: 14, name: "Oso Polar", img: "Oso Polar Navideño.png" },
+            { id: 15, name: "Pastorcillo", img: "Pastorcillo.png" },
+            { id: 16, name: "Pinguino Friolero", img: "Pinguino Friolero.png" },
+            { id: 17, name: "Reno Bailarin", img: "Reno Bailarin.png" },
+            { id: 18, name: "Baltasar", img: "Rey Mago Baltasar.png" },
+            { id: 19, name: "Melchor", img: "Rey Mago Melchor.png" },
+            { id: 20, name: "Cascanueces", img: "Cascanueces Soldado.png" },
+            { id: 21, name: "Carbon", img: "Carbon.png" },
+            { id: 22, name: "Scrooge", img: "Scrooge.png" },
+            { id: 23, name: "El Grinch", img: "El Grinch.png" },
+            { id: 24, name: "Angel de la Guarda", img: "Angel de la Guarda.png" },
+        ];
+
+        // --- LÓGICA DEL JUEGO ---
+
+        const boardElement = document.getElementById('game-board');
+        const counterElement = document.getElementById('counter');
+        let activeCards = CONFIGURACION_PERSONAJES.length;
+
+        function initGame() {
+            boardElement.innerHTML = '';
+            activeCards = CONFIGURACION_PERSONAJES.length;
+            updateCounter();
+
+            CONFIGURACION_PERSONAJES.forEach(char => {
+                // Crear estructura HTML de la tarjeta
+                const scene = document.createElement('div');
+                scene.className = 'scene';
+                
+                // MEJORA UX: El evento onclick ahora está en el contenedor 'scene' completo, 
+                // no solo en la tarjeta giratoria. Esto facilita levantarla.
+                scene.setAttribute('onclick', "toggleCard(this.querySelector('.card'))");
+                
+                // HTML interno de la tarjeta
+                scene.innerHTML = `
+                    <div class="hinge"></div>
+                    <div class="card" data-id="${char.id}">
+                        <div class="card-face">
+                            <div class="image-container">
+                                <!-- IMAGEN DEL PERSONAJE -->
+                                <img src="${char.img}" alt="${char.name}" class="character-img" onerror="this.src='https://placehold.co/300x400?text=Error'">
+                            </div>
+                            <div class="name-tag">${char.name}</div>
+                        </div>
+                    </div>
+                `;
+                boardElement.appendChild(scene);
+            });
+        }
+
+        function toggleCard(cardElement) {
+            // Alternar clase 'is-down'
+            const isDown = cardElement.classList.contains('is-down');
+            
+            if (isDown) {
+                // Si estaba abajo, la levantamos
+                cardElement.classList.remove('is-down');
+                activeCards++;
+                playHaptic();
+            } else {
+                // Si estaba arriba, la bajamos
+                cardElement.classList.add('is-down');
+                activeCards--;
+                playHaptic();
+            }
+            updateCounter();
+        }
+
+        function updateCounter() {
+            counterElement.innerText = activeCards;
+            // Efecto visual cuando cambia el número
+            counterElement.style.transform = "scale(1.5)";
+            counterElement.style.color = "#ffd700";
+            setTimeout(() => {
+                counterElement.style.transform = "scale(1)";
+                counterElement.style.color = "white";
+            }, 200);
+        }
+
+        function resetGame() {
+            if(confirm("¿Estás seguro de que quieres levantar todas las tarjetas?")) {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, index) => {
+                    // Pequeño retardo para efecto cascada "satisfactorio"
+                    setTimeout(() => {
+                        card.classList.remove('is-down');
+                    }, index * 30);
+                });
+                activeCards = CONFIGURACION_PERSONAJES.length;
+                updateCounter();
+            }
+        }
+
+        function playHaptic() {
+            if (navigator.vibrate) {
+                navigator.vibrate(15);
+            }
+        }
+
+        // --- SISTEMA DE NIEVE ---
+        function createSnow() {
+            const snowContainer = document.createElement('div');
+            document.body.appendChild(snowContainer);
+            
+            const characters = ['❄', '❅', '❆', '•'];
+            
+            setInterval(() => {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerText = characters[Math.floor(Math.random() * characters.length)];
+                
+                // Aleatoriedad
+                const startLeft = Math.random() * 100;
+                const duration = Math.random() * 5 + 5; // Entre 5 y 10s
+                const size = Math.random() * 15 + 10;
+                
+                snowflake.style.left = startLeft + 'vw';
+                snowflake.style.fontSize = size + 'px';
+                snowflake.style.animationDuration = duration + 's';
+                
+                document.body.appendChild(snowflake);
+                
+                // Limpiar copo después de caer
+                setTimeout(() => {
+                    snowflake.remove();
+                }, duration * 1000);
+            }, 300); // Frecuencia de creación
+        }
+
+        // Iniciar
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            createSnow();
+        });
+
+    </script>
+</body>
+</html>
